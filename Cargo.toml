@@ -1,0 +1,27 @@
+[package]
+name = "corpc"
+version = "0.1.0"
+authors = ["Xudong Huang <huangxu008@hotmail.com>"]
+license = "MIT"
+documentation = "https://docs.rs/corpc"
+homepage = "https://github.com/Xudong-Huang/corpc"
+repository = "https://github.com/Xudong-Huang/corpc"
+keywords = ["rpc", "protocol", "remote", "procedure", "serialize"]
+readme = "README.md"
+description = "An RPC framework for Rust based on coroutine."
+
+[dependencies]
+coroutine = { path = "../coroutine-rs" }
+bincode = "0.6"
+byteorder = "1.0"
+log = "0.3"
+serde = "0.8"
+serde_derive = "0.8"
+# corpc-plugins = { path = "src/plugins"  }
+
+[dev-dependencies]
+env_logger = "0.4"
+
+[features]
+default = ["unstable"]
+unstable = ["serde/unstable"]
