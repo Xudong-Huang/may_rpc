@@ -57,12 +57,14 @@ pub extern crate conetty;
 macro_rules! rpc_client {
     (Tcp) => {$crate::conetty::TcpClient};
     (Udp) => {$crate::conetty::UdpClient};
+    (Multiplex) => {$crate::conetty::MultiplexClient};
 }
 
 #[macro_export]
 macro_rules! rpc_server_start {
     (Tcp, $me: ident, $addr: expr) => {$crate::conetty::TcpServer::start($me, $addr)};
     (Udp, $me: ident, $addr: expr) => {$crate::conetty::UdpServer::start($me, $addr)};
+    (Multiplex, $me: ident, $addr: expr) => {$crate::conetty::TcpServer::start($me, $addr)};
 }
 
 

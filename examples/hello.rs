@@ -7,7 +7,7 @@ extern crate serde_derive;
 
 rpc! {
     /// the connection type, default is Tcp
-    net: Udp;
+    net: Multiplex;
     /// Say hello
     rpc hello(name: String) -> String;
     /// add two number
