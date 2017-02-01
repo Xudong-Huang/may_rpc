@@ -27,7 +27,9 @@ arguments to corpc fns.
 Add to your `Cargo.toml` dependencies:
 
 ```toml
-tarpc = { git = "https://github.com/Xudong-Huang/corpc" }
+corpc = { git = "https://github.com/Xudong-Huang/corpc" }
+serde = "0.9"
+serde_derive = "0.9"
 ```
 
 ## Example
@@ -35,58 +37,53 @@ tarpc = { git = "https://github.com/Xudong-Huang/corpc" }
 ```rust
 #[macro_use]
 extern crate corpc;
+#[macro_use]
+extern crate serde_derive;
 
-use corpc::{client, server};
-
-rpc_service! {
-    rpc hello(name: String) -> String;
+rpc! {
+   rpc hello(name: String) -> String;
 }
 
-#[derive(Clone)]
-struct HelloServer;
+struct HelloImpl;
 
-impl RpcService for HelloServer {
-    fn hello(&self, name: String) -> String {
-        format!("Hello, {}!", name)
-    }
+impl RpcSpec for HelloImpl {
+   fn hello(&self, name: String) -> String {
+       format!("Hello, {}!", name)
+   }
 }
 
 fn main() {
-    let addr = "localhost:10000";
-    HelloServer.listen(addr).unwrap();
-    let client = RpcClient::connect(addr).unwrap();
-    println!("{}", client.hello("Mom".to_string()).unwrap());
+   let addr = "localhost:10000";
+   RpcServer(HelloImpl).start(addr).unwrap();
+   let client = RpcClient::connect(addr).unwrap();
+   println!("{}", client.hello("Mom".to_string()).unwrap());
 }
 ```
 
-The `rpc_service!` macro expands to a collection of items that form an
+The `rpc!` macro expands to a collection of items that form an
 rpc service. In the above example, the macro is called within the
-`hello_service` module. This module will contain `RpcClient` type and
-`RpcService` traits. These generated types make it easy and ergonomic to
-write servers without dealing with sockets or serialization directly.
-Simply implement one of the generated traits, and you're off to the
-races! See the `corpc_examples` package for more examples.
+`hello_service` module. This module will contain `RpcClient` type,
+`RpcServer` type and `RpcSpec` traits. These generated types make
+it easy and ergonomic to write servers without dealing with sockets
+or serialization directly. Simply implement one of the generated
+traits, and you're off to the races!
+
+See the examples directory for more examples.
 
 ### Sync vs Async
 
-A single `rpc_service!` invocation generates code that can be used for both synchronous and asynchronous situations. if you run it in a normal thread context, the thread would be blocked until rpc response come back. if you run in in a coroutine context it will automatically have the ability of non-blocking io.
-
-## Example: Coroutines
-
-Here's the same service, implemented using coroutines.
-
-TODO
+A single `rpc!` invocation generates code that can be used for both synchronous and asynchronous situations. if you run it in a normal thread context, the thread would be blocked until rpc response come back. if you run in in a coroutine context it will automatically have the ability of non-blocking io.
 
 ### Errors
 
-All generated corpc RPC methods return `corpc::Result<T>`. the Error reason could be an io error or timeout.
+All generated corpc RPC methods return `Result<T, conetty::Error>`. the Error reason could be an io error or timeout.
 
 Default timeout is 10s while you can configure through the RpcClient instance.
 
 ## Documentation
 
 Use `cargo doc` as you normally would to see the documentation created for all
-items expanded by a `rpc_service!` invocation.
+items expanded by a `rpc!` invocation.
 
 ## Additional Features
 

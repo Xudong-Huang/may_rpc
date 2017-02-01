@@ -21,20 +21,19 @@
 //!
 //! Example usage:
 //!
-//! ```rust,ignore
+//! ```rust
 //! #[macro_use]
 //! extern crate corpc;
+//! #[macro_use]
+//! extern crate serde_derive;
 //!
-//! use corpc::{client, server};
-//!
-//! rpc_service! {
+//! rpc! {
 //!     rpc hello(name: String) -> String;
 //! }
 //!
-//! #[derive(Clone)]
-//! struct HelloServer;
+//! struct HelloImpl;
 //!
-//! impl RpcService for HelloServer {
+//! impl RpcSpec for HelloImpl {
 //!     fn hello(&self, name: String) -> String {
 //!         format!("Hello, {}!", name)
 //!     }
@@ -42,17 +41,19 @@
 //!
 //! fn main() {
 //!     let addr = "localhost:10000";
-//!     HelloServer.listen(addr).unwrap();
+//!     RpcServer(HelloImpl).start(addr).unwrap();
 //!     let client = RpcClient::connect(addr).unwrap();
 //!     println!("{}", client.hello("Mom".to_string()).unwrap());
 //! }
 //! ```
 //!
 
-// #![deny(missing_docs)]
+#![deny(missing_docs)]
+
 #[doc(hidden)]
 pub extern crate conetty;
 
+/// dispatch rpc client according to connection type
 #[macro_export]
 macro_rules! rpc_client {
     (Tcp) => {$crate::conetty::TcpClient};
@@ -60,6 +61,7 @@ macro_rules! rpc_client {
     (Multiplex) => {$crate::conetty::MultiplexClient};
 }
 
+/// dispatch rpc server according to connection type
 #[macro_export]
 macro_rules! rpc_server_start {
     (Tcp, $me: ident, $addr: expr) => {$crate::conetty::TcpServer::start($me, $addr)};
@@ -72,21 +74,18 @@ macro_rules! rpc_server_start {
 ///
 /// Rpc methods are specified, mirroring trait syntax:
 ///
-/// ```
+/// ```rust
 /// # #[macro_use] extern crate corpc;
+/// # #[macro_use] extern crate serde_derive;
 /// # fn main() {}
-/// # rpc! {
-/// net: Tcp
-/// trait HelloRpc {
-///
+/// rpc! {
+///     /// Say hello
+///     rpc hello(name: String) -> String;
 /// }
-/// /// Say hello
-/// rpc hello(name: String) -> String;
-/// # }
 /// ```
 ///
 /// Attributes can be attached to each rpc. These attributes
-/// will then be attached to the generated service traits'
+/// will then be attached to the generated rpc spec traits'
 /// corresponding `fn`s, as well as to the client stubs' RPCs.
 ///
 /// The following items are expanded in the enclosing module:
@@ -94,6 +93,8 @@ macro_rules! rpc_server_start {
 /// * `RpcSpec`   -- the trait defining the RPC service that user need to impl
 /// * `RpcServer` -- the server that run the RPC service
 /// * `RpcClient` -- rpc client stubs implementation that wrap UdpClient/TcpClient
+///
+///  Usable net types are `Tcp`, `Udp`, `Multiplex`, please ref `conetty`
 ///
 #[macro_export]
 macro_rules! rpc {
