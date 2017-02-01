@@ -11,17 +11,8 @@ readme = "README.md"
 description = "An RPC framework for Rust based on coroutine."
 
 [dependencies]
-coroutine = { path = "../coroutine-rs" }
-bincode = "0.6"
-byteorder = "1.0"
-log = "0.3"
-serde = "0.8"
-serde_derive = "0.8"
-# corpc-plugins = { path = "src/plugins"  }
+conetty = { path = "../conetty" }
 
 [dev-dependencies]
-env_logger = "0.4"
-
-[features]
-default = ["unstable"]
-unstable = ["serde/unstable"]
+serde = "0.9"
+serde_derive = "0.9"
