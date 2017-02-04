@@ -12,7 +12,5 @@ description = "An RPC framework for Rust based on coroutine."
 
 [dependencies]
 conetty = { path = "../conetty" }
-
-[dev-dependencies]
 serde = "0.9"
 serde_derive = "0.9"

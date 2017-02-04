@@ -1,8 +1,6 @@
 #![feature(test)]
 #[macro_use]
 extern crate corpc;
-#[macro_use]
-extern crate serde_derive;
 
 #[cfg(test)]
 extern crate test;

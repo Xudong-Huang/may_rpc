@@ -28,8 +28,6 @@ Add to your `Cargo.toml` dependencies:
 
 ```toml
 corpc = { git = "https://github.com/Xudong-Huang/corpc" }
-serde = "0.9"
-serde_derive = "0.9"
 ```
 
 ## Example
@@ -37,8 +35,6 @@ serde_derive = "0.9"
 ```rust
 #[macro_use]
 extern crate corpc;
-#[macro_use]
-extern crate serde_derive;
 
 rpc! {
    rpc hello(name: String) -> String;
@@ -54,16 +50,20 @@ impl RpcSpec for HelloImpl {
 
 fn main() {
    let addr = "localhost:10000";
-   RpcServer(HelloImpl).start(addr).unwrap();
+   let server = RpcServer(HelloImpl).start(addr).unwrap();
    let client = RpcClient::connect(addr).unwrap();
    println!("{}", client.hello("Mom".to_string()).unwrap());
+
+   // terminate the server
+   unsafe { server.coroutine().cancel(); }
+   server.join().unwrap()
 }
 ```
 
 The `rpc!` macro expands to a collection of items that form an
 rpc service. In the above example, the macro is called within the
 `hello_service` module. This module will contain `RpcClient` type,
-`RpcServer` type and `RpcSpec` traits. These generated types make
+`RpcServer` type and `RpcSpec` trait. These generated types make
 it easy and ergonomic to write servers without dealing with sockets
 or serialization directly. Simply implement one of the generated
 traits, and you're off to the races!
