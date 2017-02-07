@@ -51,6 +51,8 @@
 
 #[doc(hidden)]
 pub extern crate conetty;
+#[doc(hidden)]
+pub extern crate bincode;
 
 #[allow(unused)]
 #[macro_use]
@@ -216,8 +218,8 @@ macro_rules! rpc {
             $(
             pub fn $fn_name(&self, $($arg: $in_),*) -> Result<$out, $crate::conetty::Error> {
                 use $crate::conetty::Client;
-                use $crate::conetty::bincode::serde as encode;
-                use $crate::conetty::bincode::SizeLimit::Infinite;
+                use $crate::bincode::serde as encode;
+                use $crate::bincode::SizeLimit::Infinite;
                 use $crate::conetty::Error::{ClientSerialize, ClientDeserialize};
 
                 let mut buf = Vec::with_capacity(1024);
@@ -252,8 +254,8 @@ macro_rules! rpc {
 
         impl<T: RpcSpec> $crate::conetty::Server for RpcServer<T> {
             fn service(&self, request: &[u8]) -> Result<Vec<u8>, $crate::conetty::WireError> {
-                use $crate::conetty::bincode::serde as encode;
-                use $crate::conetty::bincode::SizeLimit::Infinite;
+                use $crate::bincode::serde as encode;
+                use $crate::bincode::SizeLimit::Infinite;
                 use $crate::conetty::WireError::{ServerDeserialize, ServerSerialize};
 
                 // deserialize the request
