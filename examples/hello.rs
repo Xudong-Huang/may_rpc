@@ -77,6 +77,7 @@ fn test_hello() {
 
 fn main() {
     env_logger::init().unwrap();
+    corpc::conetty::coroutine::scheduler_config().set_workers(2).set_io_workers(4);
 
     println!("test_hello");
     test_hello();

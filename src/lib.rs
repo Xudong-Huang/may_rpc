@@ -223,15 +223,15 @@ macro_rules! rpc {
                 use $crate::bincode::SizeLimit::Infinite;
                 use $crate::conetty::Error::{ClientSerialize, ClientDeserialize};
 
-                let mut buf = Vec::with_capacity(1024);
+                let mut req = $crate::conetty::FrameBuf::new();
 
                 // serialize the para
                 let para = RpcEnum::$fn_name(($($arg,)*));
-                encode::serialize_into(&mut buf, &para, Infinite)
+                encode::serialize_into(&mut req, &para, Infinite)
                     .map_err(|e| ClientSerialize(e.to_string()))?;
 
                 // call the server
-                let frame = self.0.call_service(&buf)?;
+                let frame = self.0.call_service(req)?;
 
                 // deserialized the response
                 let ret = frame.decode_rsp()?;
