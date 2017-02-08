@@ -223,7 +223,7 @@ macro_rules! rpc {
                 use $crate::bincode::SizeLimit::Infinite;
                 use $crate::conetty::Error::{ClientSerialize, ClientDeserialize};
 
-                let mut req = $crate::conetty::FrameBuf::new();
+                let mut req = $crate::conetty::ReqBuf::new();
 
                 // serialize the para
                 let para = RpcEnum::$fn_name(($($arg,)*));
@@ -255,27 +255,26 @@ macro_rules! rpc {
         }
 
         impl<T: RpcSpec> $crate::conetty::Server for RpcServer<T> {
-            fn service(&self, request: &[u8]) -> Result<Vec<u8>, $crate::conetty::WireError> {
+            fn service(&self, req: &[u8], rsp: &mut $crate::conetty::RspBuf)
+                -> Result<(), $crate::conetty::WireError>
+            {
                 use $crate::bincode::serde as encode;
                 use $crate::bincode::SizeLimit::Infinite;
                 use $crate::conetty::WireError::{ServerDeserialize, ServerSerialize};
 
                 // deserialize the request
-                let req: RpcEnum = encode::deserialize(request)
+                let req: RpcEnum = encode::deserialize(req)
                     .map_err(|e| ServerDeserialize(e.to_string()))?;
                 // dispatch call the service
-                let mut buf = Vec::with_capacity(512);
                 match req {
                     $(
                     RpcEnum::$fn_name(($($arg,)*)) => {
-                        let rsp = self.$fn_name($($arg,)*);
+                        let ret = self.$fn_name($($arg,)*);
                         // serialize the result
-                        encode::serialize_into(&mut buf, &rsp, Infinite)
-                            .map_err(|e| ServerSerialize(e.to_string()))?;
+                        encode::serialize_into(rsp, &ret, Infinite)
+                            .map_err(|e| ServerSerialize(e.to_string()))
                     })*
-                };
-                // send the response
-                Ok(buf)
+                }
             }
         }
 
