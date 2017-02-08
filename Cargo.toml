@@ -15,3 +15,6 @@ conetty = { path = "../conetty" }
 serde = "0.9"
 serde_derive = "0.9"
 bincode = "1.0.0-alpha1"
+
+[dev-dependencies]
+env_logger = "0.4"

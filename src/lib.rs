@@ -211,6 +211,7 @@ macro_rules! rpc {
                 Client::connect(addr).map(RpcClient)
             }
 
+            #[allow(dead_code)]
             pub fn set_timeout(&mut self, timeout: ::std::time::Duration) {
                 self.0.set_timeout(timeout)
             }

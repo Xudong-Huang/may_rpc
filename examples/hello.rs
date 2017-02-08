@@ -1,11 +1,12 @@
 #[macro_use]
 extern crate corpc;
+extern crate env_logger;
 
 // cargo rustc --bin main -- -Z unstable-options --pretty expanded
 
 rpc! {
     /// the connection type, default is Tcp
-    net: Multiplex;
+    net: Udp;
     /// Say hello
     rpc hello(name: String) -> String;
     /// add two number
@@ -57,8 +58,7 @@ fn test_hello() {
 
     let addr = ("127.0.0.1", 4000);
     let server = RpcServer(HelloImpl).start(&addr).unwrap();
-    let mut client = RpcClient::connect(addr).unwrap();
-    client.set_timeout(::std::time::Duration::from_millis(100));
+    let client = RpcClient::connect(addr).unwrap();
 
     for i in 0..10 {
         let s = format!("Hello World! id={}", i);
@@ -76,9 +76,11 @@ fn test_hello() {
 }
 
 fn main() {
+    env_logger::init().unwrap();
+
     println!("test_hello");
     test_hello();
 
-    println!("\n\ntest_hello");
+    println!("\n\ntest_count");
     test_count();
 }
