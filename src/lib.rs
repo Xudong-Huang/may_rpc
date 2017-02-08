@@ -230,9 +230,10 @@ macro_rules! rpc {
                     .map_err(|e| ClientSerialize(e.to_string()))?;
 
                 // call the server
-                let ret = self.0.call_service(&buf)?;
+                let frame = self.0.call_service(&buf)?;
 
                 // deserialized the response
+                let ret = frame.decode_rsp()?;
                 encode::deserialize(&ret).map_err(|e| ClientDeserialize(e.to_string()))
             })*
         }
