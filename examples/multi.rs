@@ -1,10 +1,12 @@
 #[macro_use]
 extern crate corpc;
 
+use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use corpc::conetty::coroutine;
 
 rpc! {
+    net: Multiplex;
     /// get current count
     rpc get_count() -> usize;
 }
@@ -21,11 +23,12 @@ fn main() {
     let addr = ("127.0.0.1", 4000);
     let server = RpcServer(CountImpl(AtomicUsize::new(0))).start(&addr).unwrap();
     coroutine::scheduler_config().set_workers(2).set_io_workers(4);
+    let client = Arc::new(RpcClient::connect(addr).unwrap());
 
     let mut vec = vec![];
     for i in 0..100 {
+        let client = client.clone();
         let j = coroutine::spawn(move || {
-            let client = RpcClient::connect(&addr).unwrap();
             for _j in 0..1000 {
                 match client.get_count() {
                     // Ok(data) => println!("recv = {:?}", str::from_utf8(&data).unwrap()),
