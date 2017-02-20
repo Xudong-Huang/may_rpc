@@ -10,11 +10,14 @@ keywords = ["rpc", "protocol", "remote", "procedure", "serialize"]
 readme = "README.md"
 description = "An RPC framework for Rust based on coroutine."
 
+[lib]
+crate-type = ["dylib"]
+
 [dependencies]
 conetty = { path = "../conetty" }
 serde = "0.9"
 serde_derive = "0.9"
-bincode = "1.0.0-alpha1"
+bincode = "1.0.0-alpha2"
 
 [dev-dependencies]
 env_logger = "0.4"

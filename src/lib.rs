@@ -219,7 +219,7 @@ macro_rules! rpc {
             $(
             pub fn $fn_name(&self, $($arg: $in_),*) -> Result<$out, $crate::conetty::Error> {
                 use $crate::conetty::Client;
-                use $crate::bincode::serde as encode;
+                use $crate::bincode as encode;
                 use $crate::bincode::SizeLimit::Infinite;
                 use $crate::conetty::Error::{ClientSerialize, ClientDeserialize};
 
@@ -258,7 +258,7 @@ macro_rules! rpc {
             fn service(&self, req: &[u8], rsp: &mut $crate::conetty::RspBuf)
                 -> Result<(), $crate::conetty::WireError>
             {
-                use $crate::bincode::serde as encode;
+                use $crate::bincode as encode;
                 use $crate::bincode::SizeLimit::Infinite;
                 use $crate::conetty::WireError::{ServerDeserialize, ServerSerialize};
 
