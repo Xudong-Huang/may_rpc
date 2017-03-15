@@ -81,8 +81,6 @@ macro_rules! rpc_server_start {
 /// Rpc methods are specified, mirroring trait syntax:
 ///
 /// ```rust
-/// # #[macro_use] extern crate corpc;
-/// # #[macro_use] extern crate serde_derive;
 /// # fn main() {}
 /// rpc! {
 ///     /// Say hello
@@ -162,7 +160,7 @@ macro_rules! rpc {
             rpc $fn_name( $( $arg : $in_ ),* ) -> ();
         }
     };
-// Pattern for when the next rpc has an explicit return type and an explicit error type.
+// Pattern for when the next rpc has an explicit return type.
     (
         $(#[$net_attr:meta])*
         net: $net_type: ident;
