@@ -252,13 +252,13 @@ macro_rules! rpc {
             }
         }
 
-        impl<T: RpcSpec> $crate::conetty::Server for RpcServer<T> {
+        impl<T: RpcSpec + ::std::panic::RefUnwindSafe> $crate::conetty::Server for RpcServer<T> {
             fn service(&self, req: &[u8], rsp: &mut $crate::conetty::RspBuf)
                 -> Result<(), $crate::conetty::WireError>
             {
                 use $crate::bincode as encode;
                 use $crate::bincode::SizeLimit::Infinite;
-                use $crate::conetty::WireError::{ServerDeserialize, ServerSerialize};
+                use $crate::conetty::WireError::{ServerDeserialize, ServerSerialize, Status};
 
                 // deserialize the request
                 let req: RpcEnum = encode::deserialize(req)
@@ -267,16 +267,23 @@ macro_rules! rpc {
                 match req {
                     $(
                     RpcEnum::$fn_name(($($arg,)*)) => {
-                        let ret = self.$fn_name($($arg,)*);
-                        // serialize the result
-                        encode::serialize_into(rsp, &ret, Infinite)
-                            .map_err(|e| ServerSerialize(e.to_string()))
+                        match ::std::panic::catch_unwind(|| self.$fn_name($($arg,)*)) {
+                            Ok(ret) => {
+                                // serialize the result
+                                encode::serialize_into(rsp, &ret, Infinite)
+                                    .map_err(|e| ServerSerialize(e.to_string()))
+                            }
+                            Err(_) => {
+                                // panic happend inside!
+                                Err(Status("rpc panicked in server!".to_owned()))
+                            }
+                        }
                     })*
                 }
             }
         }
 
-        impl<T: RpcSpec + 'static> RpcServer<T> {
+        impl<T: RpcSpec + ::std::panic::RefUnwindSafe + 'static> RpcServer<T> {
             pub fn start<L: ::std::net::ToSocketAddrs>(self, addr: L)
                  -> ::std::io::Result<$crate::conetty::coroutine::JoinHandle<()>> {
                 rpc_server_start!($net_type, self, addr)
