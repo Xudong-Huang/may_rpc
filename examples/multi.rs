@@ -4,6 +4,7 @@ extern crate corpc;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use corpc::conetty::coroutine;
+use corpc::conetty::may;
 
 rpc! {
     net: Multiplex;
@@ -21,8 +22,10 @@ impl RpcSpec for CountImpl {
 
 fn main() {
     let addr = ("127.0.0.1", 4000);
-    let server = RpcServer(CountImpl(AtomicUsize::new(0))).start(&addr).unwrap();
-    coroutine::scheduler_config().set_workers(2).set_io_workers(1);
+    let server = RpcServer(CountImpl(AtomicUsize::new(0)))
+        .start(&addr)
+        .unwrap();
+    may::config().set_workers(2).set_io_workers(1);
     let client = Arc::new(RpcClient::connect(addr).unwrap());
 
     let mut vec = vec![];

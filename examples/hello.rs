@@ -31,7 +31,9 @@ fn test_count() {
     }
 
     let addr = ("127.0.0.1", 4000);
-    let server = count::RpcServer(CountImpl(AtomicUsize::new(0))).start(&addr).unwrap();
+    let server = count::RpcServer(CountImpl(AtomicUsize::new(0)))
+        .start(&addr)
+        .unwrap();
     let mut client = count::RpcClient::connect(addr).unwrap();
     client.set_timeout(::std::time::Duration::from_millis(100));
 
@@ -77,7 +79,9 @@ fn test_hello() {
 
 fn main() {
     env_logger::init().unwrap();
-    corpc::conetty::coroutine::scheduler_config().set_workers(2).set_io_workers(4);
+    corpc::conetty::may::config()
+        .set_workers(2)
+        .set_io_workers(4);
 
     println!("test_hello");
     test_hello();

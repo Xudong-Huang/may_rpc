@@ -81,6 +81,8 @@ macro_rules! rpc_server_start {
 /// Rpc methods are specified, mirroring trait syntax:
 ///
 /// ```rust
+/// #[macro_use]
+/// extern crate corpc;
 /// # fn main() {}
 /// rpc! {
 ///     /// Say hello
@@ -218,7 +220,7 @@ macro_rules! rpc {
             pub fn $fn_name(&self, $($arg: $in_),*) -> Result<$out, $crate::conetty::Error> {
                 use $crate::conetty::Client;
                 use $crate::bincode as encode;
-                use $crate::bincode::SizeLimit::Infinite;
+                use $crate::bincode::Infinite;
                 use $crate::conetty::Error::{ClientSerialize, ClientDeserialize};
 
                 let mut req = $crate::conetty::ReqBuf::new();
@@ -257,7 +259,7 @@ macro_rules! rpc {
                 -> Result<(), $crate::conetty::WireError>
             {
                 use $crate::bincode as encode;
-                use $crate::bincode::SizeLimit::Infinite;
+                use $crate::bincode::Infinite;
                 use $crate::conetty::WireError::{ServerDeserialize, ServerSerialize, Status};
 
                 // deserialize the request
