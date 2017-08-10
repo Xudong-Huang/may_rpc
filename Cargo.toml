@@ -8,7 +8,7 @@ homepage = "https://github.com/Xudong-Huang/corpc"
 repository = "https://github.com/Xudong-Huang/corpc"
 keywords = ["rpc", "protocol", "remote", "procedure", "serialize"]
 readme = "README.md"
-description = "An RPC framework for Rust based on coroutine."
+description = "RPC framework for Rust based on coroutine."
 
 [lib]
 # crate-type = ["dylib"]
