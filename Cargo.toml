@@ -15,9 +15,9 @@ description = "An RPC framework for Rust based on coroutine."
 
 [dependencies]
 conetty = { git = "https://github.com/Xudong-Huang/conetty.git" }
-serde = "0.9"
-serde_derive = "0.9"
-bincode = "1.0.0-alpha7"
+serde = "1"
+serde_derive = "1"
+bincode = "0.8"
 
 [dev-dependencies]
 env_logger = "0.4"

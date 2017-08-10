@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate corpc;
+extern crate env_logger;
 
 use std::sync::Arc;
 use std::time::Instant;
@@ -18,12 +19,11 @@ impl RpcSpec for Server {
 }
 
 fn main() {
-    may::config().set_workers(4).set_io_workers(1);
+    env_logger::init().unwrap();
+    may::config().set_workers(2).set_io_workers(2);
     let addr = ("127.0.0.1", 4000);
     let server = RpcServer(Server).start(&addr).unwrap();
-    let clients: Vec<_> = (0..4)
-        .map(|_| RpcClient::connect(addr).unwrap())
-        .collect();
+    let clients: Vec<_> = (0..4).map(|_| RpcClient::connect(addr).unwrap()).collect();
     let clients = Arc::new(clients);
     let mut vec = vec![];
     let now = Instant::now();
