@@ -203,6 +203,7 @@ macro_rules! rpc {
             ),*
         }
 
+        #[derive(Debug)]
         pub struct RpcClient(rpc_client!($net_type));
 
         impl RpcClient {
@@ -245,6 +246,7 @@ macro_rules! rpc {
         }
 
         // rpc server
+        #[derive(Debug)]
         pub struct RpcServer<T>(pub T);
 
         impl<T: RpcSpec> ::std::ops::Deref for RpcServer<T> {
