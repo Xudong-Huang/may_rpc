@@ -1,6 +1,8 @@
 #[macro_use]
 extern crate corpc;
 extern crate env_logger;
+#[macro_use]
+extern crate serde_derive;
 
 // cargo rustc --bin main -- -Z unstable-options --pretty expanded
 

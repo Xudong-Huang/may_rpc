@@ -35,6 +35,8 @@ corpc = { git = "https://github.com/Xudong-Huang/corpc" }
 ```rust
 #[macro_use]
 extern crate corpc;
+#[macro_use]
+extern crate serde_derive;
 
 rpc! {
    rpc hello(name: String) -> String;

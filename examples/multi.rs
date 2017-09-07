@@ -1,5 +1,7 @@
 #[macro_use]
 extern crate corpc;
+#[macro_use]
+extern crate serde_derive;
 
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};

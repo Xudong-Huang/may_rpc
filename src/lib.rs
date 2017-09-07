@@ -24,6 +24,8 @@
 //! ```rust
 //! #[macro_use]
 //! extern crate corpc;
+//! #[macro_use]
+//! extern crate serde_derive;
 //!
 //! rpc! {
 //!     rpc hello(name: String) -> String;
@@ -47,7 +49,6 @@
 //!
 
 #![deny(missing_docs)]
-#![feature(macro_reexport)]
 
 #[doc(hidden)]
 pub extern crate conetty;
@@ -56,7 +57,6 @@ pub extern crate bincode;
 
 #[allow(unused)]
 #[macro_use]
-#[macro_reexport(Serialize, Deserialize)]
 extern crate serde_derive;
 
 /// dispatch rpc client according to connection type
@@ -83,6 +83,8 @@ macro_rules! rpc_server_start {
 /// ```rust
 /// #[macro_use]
 /// extern crate corpc;
+/// #[macro_use]
+/// extern crate serde_derive;
 /// # fn main() {}
 /// rpc! {
 ///     /// Say hello

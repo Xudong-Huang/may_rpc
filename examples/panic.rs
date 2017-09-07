@@ -1,5 +1,7 @@
 #[macro_use]
 extern crate corpc;
+#[macro_use]
+extern crate serde_derive;
 
 rpc! {
     rpc add(x: u32, y: u32) -> u32;

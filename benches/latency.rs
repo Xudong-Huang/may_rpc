@@ -4,6 +4,8 @@ extern crate corpc;
 
 #[cfg(test)]
 extern crate test;
+#[macro_use]
+extern crate serde_derive;
 #[cfg(test)]
 use test::Bencher;
 use corpc::conetty::may;
