@@ -1,4 +1,4 @@
-//! corpc is an RPC framework for rust with a focus on ease of use, based on coroutines.
+//! may_rpc is an RPC framework for rust with a focus on ease of use, based on coroutines.
 //! Defining a service can be done in just a few lines of code, and most of the boilerplate of
 //! writing a server is taken care of for you.
 //!
@@ -13,11 +13,11 @@
 //! architectures. Two well-known ones are [gRPC](http://www.grpc.io) and
 //! [Cap'n Proto](https://capnproto.org/).
 //!
-//! corpc differentiates itself from other RPC frameworks by defining the schema in code,
+//! may_rpc differentiates itself from other RPC frameworks by defining the schema in code,
 //! rather than in a separate language such as .proto. This means there's no separate compilation
 //! process, and no cognitive context switching between different languages. Additionally, it
 //! works with the community-backed library serde: any serde-serializable type can be used as
-//! arguments to corpc fns.
+//! arguments to may_rpc `fn`s.
 //!
 //! Example usage:
 //!
