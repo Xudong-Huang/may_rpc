@@ -58,6 +58,30 @@ All generated may_rpc RPC methods return `Result<T, conetty::Error>`. the Error 
 
 Default timeout is 10s while you can configure through the RpcClient instance.
 
+## Performance
+
+Just run the throughput example under this project
+
+**Machine Specs:**
+
+  * **Logical Cores:** 4 (4 cores x 2 threads)
+  * **Memory:** 4gb ECC DDR3 @ 1600mhz
+  * **Processor:** CPU Intel(R) Core(TM) i7-3820QM CPU @ 2.70GHz
+  * **Operating System:** Windows 10
+
+**Test config:**
+```rust
+may::config().set_workers(6).set_io_workers(4);
+```
+result:
+
+```sh
+$ cargo run --example=throughput --release
+......
+     Running `target\release\examples\throughput.exe`
+206127.39 rpc/second
+```
+
 ## Additional Features
 
 - Concurrent requests from a single client. client can be cloned to reuse the connection
