@@ -1,6 +1,6 @@
 #![feature(test)]
 #[macro_use]
-extern crate corpc;
+extern crate may_rpc;
 
 #[cfg(test)]
 extern crate test;
@@ -8,7 +8,7 @@ extern crate test;
 extern crate serde_derive;
 #[cfg(test)]
 use test::Bencher;
-use corpc::conetty::may;
+use may_rpc::conetty::may;
 
 rpc! {
     rpc ack();
