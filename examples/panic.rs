@@ -1,5 +1,5 @@
 #[macro_use]
-extern crate corpc;
+extern crate may_rpc;
 #[macro_use]
 extern crate serde_derive;
 

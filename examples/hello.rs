@@ -1,5 +1,6 @@
+extern crate may;
 #[macro_use]
-extern crate corpc;
+extern crate may_rpc;
 extern crate env_logger;
 #[macro_use]
 extern crate serde_derive;
@@ -81,7 +82,7 @@ fn test_hello() {
 
 fn main() {
     env_logger::init().unwrap();
-    corpc::conetty::may::config()
+    may::config()
         .set_workers(2)
         .set_io_workers(4);
 

@@ -23,7 +23,7 @@
 //!
 //! ```rust
 //! #[macro_use]
-//! extern crate corpc;
+//! extern crate may_rpc;
 //! #[macro_use]
 //! extern crate serde_derive;
 //!
@@ -51,9 +51,9 @@
 #![deny(missing_docs)]
 
 #[doc(hidden)]
-pub extern crate conetty;
-#[doc(hidden)]
 pub extern crate bincode;
+#[doc(hidden)]
+pub extern crate conetty;
 
 #[allow(unused)]
 #[macro_use]
@@ -75,14 +75,13 @@ macro_rules! rpc_server_start {
     (Multiplex, $me: ident, $addr: expr) => {$crate::conetty::TcpServer::start($me, $addr)};
 }
 
-
 /// The main macro that creates RPC services.
 ///
 /// Rpc methods are specified, mirroring trait syntax:
 ///
 /// ```rust
 /// #[macro_use]
-/// extern crate corpc;
+/// extern crate may_rpc;
 /// #[macro_use]
 /// extern crate serde_derive;
 /// # fn main() {}

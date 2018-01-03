@@ -1,13 +1,14 @@
+
 #[macro_use]
-extern crate corpc;
+extern crate may;
+#[macro_use]
+extern crate may_rpc;
 extern crate env_logger;
 #[macro_use]
 extern crate serde_derive;
 
 use std::sync::Arc;
 use std::time::Instant;
-use corpc::conetty::may;
-use corpc::conetty::coroutine;
 
 rpc! {
     net: Multiplex;
@@ -31,7 +32,7 @@ fn main() {
     let now = Instant::now();
     for _i in 0..100 {
         let clients = clients.clone();
-        let h = coroutine::spawn(move || {
+        let h = go!(move || {
             for j in 0..10000 {
                 let idx = j & 0x03;
                 match clients[idx].ack() {
