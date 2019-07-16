@@ -8,7 +8,6 @@ extern crate test;
 extern crate serde_derive;
 #[cfg(test)]
 use test::Bencher;
-use may_rpc::conetty::may;
 
 rpc! {
     rpc ack();
@@ -28,7 +27,9 @@ fn latency(bencher: &mut Bencher) {
     let server = RpcServer(Server).start(&addr).unwrap();
     let client = RpcClient::connect(addr).unwrap();
 
-    bencher.iter(|| { client.ack().unwrap(); });
+    bencher.iter(|| {
+        client.ack().unwrap();
+    });
 
     unsafe { server.coroutine().cancel() };
     server.join().ok();

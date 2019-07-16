@@ -25,7 +25,6 @@ mod count {
 
 fn test_count() {
     use std::sync::atomic::{AtomicUsize, Ordering};
-    use count;
     struct CountImpl(AtomicUsize);
     impl count::RpcSpec for CountImpl {
         fn get_count(&self) -> usize {
@@ -82,9 +81,7 @@ fn test_hello() {
 
 fn main() {
     env_logger::init().unwrap();
-    may::config()
-        .set_workers(2)
-        .set_io_workers(4);
+    may::config().set_workers(2).set_io_workers(4);
 
     println!("test_hello");
     test_hello();

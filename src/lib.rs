@@ -40,7 +40,7 @@
 //! }
 //!
 //! fn main() {
-//!     let addr = "localhost:10000";
+//!     let addr = "127.0.0.1:10000";
 //!     RpcServer(HelloImpl).start(addr).unwrap();
 //!     let client = RpcClient::connect(addr).unwrap();
 //!     println!("{}", client.hello("Mom".to_string()).unwrap());
@@ -54,25 +54,35 @@
 pub extern crate bincode;
 #[doc(hidden)]
 pub extern crate conetty;
-
-#[allow(unused)]
-#[macro_use]
-extern crate serde_derive;
+#[doc(hidden)]
+pub extern crate may;
 
 /// dispatch rpc client according to connection type
 #[macro_export]
 macro_rules! rpc_client {
-    (Tcp) => {$crate::conetty::TcpClient};
-    (Udp) => {$crate::conetty::UdpClient};
-    (Multiplex) => {$crate::conetty::MultiplexClient};
+    (Tcp) => {
+        $crate::conetty::TcpClient
+    };
+    (Udp) => {
+        $crate::conetty::UdpClient
+    };
+    (Multiplex) => {
+        $crate::conetty::MultiplexClient
+    };
 }
 
 /// dispatch rpc server according to connection type
 #[macro_export]
 macro_rules! rpc_server_start {
-    (Tcp, $me: ident, $addr: expr) => {$crate::conetty::TcpServer::start($me, $addr)};
-    (Udp, $me: ident, $addr: expr) => {$crate::conetty::UdpServer::start($me, $addr)};
-    (Multiplex, $me: ident, $addr: expr) => {$crate::conetty::TcpServer::start($me, $addr)};
+    (Tcp, $me: ident, $addr: expr) => {
+        $crate::conetty::TcpServer::start($me, $addr)
+    };
+    (Udp, $me: ident, $addr: expr) => {
+        $crate::conetty::UdpServer::start($me, $addr)
+    };
+    (Multiplex, $me: ident, $addr: expr) => {
+        $crate::conetty::TcpServer::start($me, $addr)
+    };
 }
 
 /// The main macro that creates RPC services.
@@ -222,14 +232,13 @@ macro_rules! rpc {
             pub fn $fn_name(&self, $($arg: $in_),*) -> Result<$out, $crate::conetty::Error> {
                 use $crate::conetty::Client;
                 use $crate::bincode as encode;
-                use $crate::bincode::Infinite;
                 use $crate::conetty::Error::{ClientSerialize, ClientDeserialize};
 
                 let mut req = $crate::conetty::ReqBuf::new();
 
                 // serialize the para
                 let para = RpcEnum::$fn_name(($($arg,)*));
-                encode::serialize_into(&mut req, &para, Infinite)
+                encode::serialize_into(&mut req, &para)
                     .map_err(|e| ClientSerialize(e.to_string()))?;
 
                 // call the server
@@ -262,7 +271,6 @@ macro_rules! rpc {
                 -> Result<(), $crate::conetty::WireError>
             {
                 use $crate::bincode as encode;
-                use $crate::bincode::Infinite;
                 use $crate::conetty::WireError::{ServerDeserialize, ServerSerialize, Status};
 
                 // deserialize the request
@@ -275,7 +283,7 @@ macro_rules! rpc {
                         match ::std::panic::catch_unwind(|| self.$fn_name($($arg,)*)) {
                             Ok(ret) => {
                                 // serialize the result
-                                encode::serialize_into(rsp, &ret, Infinite)
+                                encode::serialize_into(rsp, &ret)
                                     .map_err(|e| ServerSerialize(e.to_string()))
                             }
                             Err(_) => {
@@ -290,7 +298,7 @@ macro_rules! rpc {
 
         impl<T: RpcSpec + ::std::panic::RefUnwindSafe + 'static> RpcServer<T> {
             pub fn start<L: ::std::net::ToSocketAddrs>(self, addr: L)
-                 -> ::std::io::Result<$crate::conetty::coroutine::JoinHandle<()>> {
+                 -> ::std::io::Result<$crate::may::coroutine::JoinHandle<()>> {
                 rpc_server_start!($net_type, self, addr)
             }
         }

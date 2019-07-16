@@ -1,4 +1,3 @@
-
 #[macro_use]
 extern crate may;
 #[macro_use]
