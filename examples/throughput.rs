@@ -22,10 +22,15 @@ impl RpcSpec for Server {
 
 fn main() {
     env_logger::init().unwrap();
-    may::config().set_workers(2).set_io_workers(2);
+    let cpu_num = num_cpus::get();
+    // may::config().set_workers(2).set_io_workers(2);
+    may::config()
+        .set_workers(cpu_num)
+        .set_io_workers(cpu_num)
+        .set_pool_capacity(10000);
     let addr = ("127.0.0.1", 4000);
     let server = RpcServer(Server).start(&addr).unwrap();
-    let clients: Vec<_> = (0..4).map(|_| RpcClient::connect(addr).unwrap()).collect();
+    let clients: Vec<_> = (0..16).map(|_| RpcClient::connect(addr).unwrap()).collect();
     let clients = Arc::new(clients);
     let mut vec = vec![];
     let now = Instant::now();
@@ -33,7 +38,7 @@ fn main() {
         let clients = clients.clone();
         let h = go!(move || {
             for j in 0..10000 {
-                let idx = j & 0x03;
+                let idx = j & 0x0f;
                 match clients[idx].ack() {
                     Err(err) => println!("recv err = {:?}", err),
                     _ => {}

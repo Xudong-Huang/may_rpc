@@ -21,5 +21,6 @@ serde_derive = "1"
 conetty = { git = "https://github.com/Xudong-Huang/conetty.git" }
 
 [dev-dependencies]
+num_cpus = "1"
 env_logger = "0.4"
 
