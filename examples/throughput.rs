@@ -11,13 +11,15 @@ use std::time::Instant;
 
 rpc! {
     net: Multiplex;
-    rpc ack();
+    rpc ack(n: usize) -> usize;
 }
 
 struct Server;
 
 impl RpcSpec for Server {
-    fn ack(&self) {}
+    fn ack(&self, n: usize) -> usize {
+        n + 1
+    }
 }
 
 fn main() {
@@ -34,14 +36,14 @@ fn main() {
     let clients = Arc::new(clients);
     let mut vec = vec![];
     let now = Instant::now();
-    for _i in 0..100 {
+    for _i in 0..1000 {
         let clients = clients.clone();
         let h = go!(move || {
-            for j in 0..10000 {
+            for j in 0..1000 {
                 let idx = j & 0x0f;
-                match clients[idx].ack() {
+                match clients[idx].ack(j) {
                     Err(err) => println!("recv err = {:?}", err),
-                    _ => {}
+                    Ok(n) => assert_eq!(n, j + 1),
                 }
             }
             // println!("thread done, id={}", i);
