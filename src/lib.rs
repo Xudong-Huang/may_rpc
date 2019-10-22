@@ -24,8 +24,6 @@
 //! ```rust
 //! #[macro_use]
 //! extern crate may_rpc;
-//! #[macro_use]
-//! extern crate serde_derive;
 //!
 //! rpc! {
 //!     rpc hello(name: String) -> String;
@@ -92,8 +90,6 @@ macro_rules! rpc_server_start {
 /// ```rust
 /// #[macro_use]
 /// extern crate may_rpc;
-/// #[macro_use]
-/// extern crate serde_derive;
 /// # fn main() {}
 /// rpc! {
 ///     /// Say hello
