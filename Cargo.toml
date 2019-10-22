@@ -15,12 +15,10 @@ description = "RPC framework for Rust based on coroutine."
 
 [dependencies]
 may = "0.3"
-serde = "1"
 bincode = "1"
-serde_derive = "1"
+serde = { version = "1", features = ["derive"] }
 conetty = { git = "https://github.com/Xudong-Huang/conetty.git" }
 
 [dev-dependencies]
-num_cpus = "1"
-env_logger = "0.4"
+env_logger = "0.5"
 

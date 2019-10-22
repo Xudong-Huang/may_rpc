@@ -4,8 +4,6 @@ extern crate may_rpc;
 
 #[cfg(test)]
 extern crate test;
-#[macro_use]
-extern crate serde_derive;
 #[cfg(test)]
 use test::Bencher;
 
@@ -22,7 +20,6 @@ impl RpcSpec for Server {
 #[cfg(test)]
 #[bench]
 fn latency(bencher: &mut Bencher) {
-    may::config().set_workers(2).set_io_workers(4);
     let addr = ("127.0.0.1", 4000);
     let server = RpcServer(Server).start(&addr).unwrap();
     let client = RpcClient::connect(addr).unwrap();

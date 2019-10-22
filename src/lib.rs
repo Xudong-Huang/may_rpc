@@ -50,12 +50,12 @@
 
 #![deny(missing_docs)]
 
-#[doc(hidden)]
 pub extern crate bincode;
 #[doc(hidden)]
 pub extern crate conetty;
 #[doc(hidden)]
 pub extern crate may;
+pub extern crate serde;
 
 /// dispatch rpc client according to connection type
 #[macro_export]
@@ -207,7 +207,7 @@ macro_rules! rpc {
         )*
     ) => {
         #[allow(non_camel_case_types)]
-        #[derive(Debug, Serialize, Deserialize)]
+        #[derive(Debug, $crate::serde::Serialize, $crate::serde::Deserialize)]
         enum RpcEnum {
             $(
                 $fn_name(( $($in_,)* ))

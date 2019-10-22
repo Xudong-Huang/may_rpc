@@ -2,8 +2,6 @@ extern crate may;
 #[macro_use]
 extern crate may_rpc;
 extern crate env_logger;
-#[macro_use]
-extern crate serde_derive;
 
 // cargo rustc --bin main -- -Z unstable-options --pretty expanded
 
@@ -80,8 +78,7 @@ fn test_hello() {
 }
 
 fn main() {
-    env_logger::init().unwrap();
-    may::config().set_workers(2).set_io_workers(4);
+    env_logger::init();
 
     println!("test_hello");
     test_hello();

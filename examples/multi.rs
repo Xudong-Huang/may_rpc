@@ -2,8 +2,6 @@
 extern crate may;
 #[macro_use]
 extern crate may_rpc;
-#[macro_use]
-extern crate serde_derive;
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
@@ -27,7 +25,6 @@ fn main() {
     let server = RpcServer(CountImpl(AtomicUsize::new(0)))
         .start(&addr)
         .unwrap();
-    may::config().set_workers(2).set_io_workers(2);
     let client = Arc::new(RpcClient::connect(addr).unwrap());
 
     let mut vec = vec![];
