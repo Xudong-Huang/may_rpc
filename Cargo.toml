@@ -20,5 +20,5 @@ serde = { version = "1", features = ["derive"] }
 conetty = { git = "https://github.com/Xudong-Huang/conetty.git" }
 
 [dev-dependencies]
-env_logger = "0.5"
+env_logger = "0.9"
 
