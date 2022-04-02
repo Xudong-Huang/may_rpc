@@ -19,35 +19,6 @@
 //! works with the community-backed library serde: any serde-serializable type can be used as
 //! arguments to may_rpc `fn`s.
 //!
-//! Example usage:
-//!
-//! ```rust
-//!
-//! #[may_rpc::service]
-//! trait Hello {
-//!     fn hello(name: String) -> String;
-//! }
-//!
-//! #[may_rpc::server]
-//! struct HelloServer;
-//!
-//! impl Hello for HelloServer {
-//!     fn hello(&self, name: String) -> String {
-//!         format!("Hello, {}!", name)
-//!     }
-//! }
-//!
-//! fn main() {
-//!     use may_rpc::TcpServer;
-//!     let addr = "127.0.0.1:10000";
-//!     HelloServer.start(addr).unwrap();
-//!
-//!     let stream = may::net::TcpStream::connect(addr).unwrap();
-//!     let client = HelloClient::new(stream).unwrap();
-//!     println!("{}", client.hello("Mom".to_string()).unwrap());
-//! }
-//! ```
-//!
 
 #![deny(missing_docs)]
 
@@ -60,5 +31,4 @@ pub use serde;
 
 // re-export all conetty types
 pub use conetty::*;
-pub use may_rpc_derive::{server, service};
-
+pub use may_rpc_derive::{service, Server};

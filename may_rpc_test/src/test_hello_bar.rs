@@ -4,20 +4,21 @@
 pub trait Hello {
     /// Returns a greeting for name.
     fn echo(data: String) -> String;
-	/// add two u32
-	fn add(x: u32, y: u32) -> u32;
+    /// add two u32
+    fn add(x: u32, y: u32) -> u32;
 }
 
-#[may_rpc::server]
+#[derive(may_rpc::Server)]
+#[service(Hello)]
 pub struct HelloService;
 
 /// implement the server
 impl Hello for HelloService {
-	fn echo(data: String) -> String {
-		data
-	}
+    fn echo(data: String) -> String {
+        data
+    }
 
-	fn add(x: u32, y: u32) -> u32 {
-		x + y
-	}
+    fn add(x: u32, y: u32) -> u32 {
+        x + y
+    }
 }

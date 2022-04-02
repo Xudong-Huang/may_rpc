@@ -4,19 +4,19 @@ extern crate may_rpc;
 extern crate env_logger;
 
 // cargo rustc --bin main -- -Z unstable-options --pretty expanded
-rpc! {
-    /// the connection type, default is Tcp
-    net: Tcp;
+#[may_rpc::service]
+trait RpcSpec {
     /// Say hello
-    rpc hello(name: String) -> String;
+    fn hello(name: String) -> String;
     /// add two number
-    rpc add(x: u32, y: u32 ) -> u32;
+    fn add(x: u32, y: u32) -> u32;
 }
 
 mod count {
-    rpc! {
+    #[may_rpc::service]
+    trait RpcSpec {
         /// get current count
-        rpc get_count() -> usize;
+        fn get_count() -> usize;
     }
 }
 

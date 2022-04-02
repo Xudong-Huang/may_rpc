@@ -6,18 +6,17 @@ extern crate quote;
 extern crate syn;
 
 use proc_macro::TokenStream;
-use proc_macro2::{Span, TokenStream as TokenStream2};
+use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote, ToTokens};
 use syn::{
     braced,
     ext::IdentExt,
     parenthesized,
     parse::{Parse, ParseStream},
-    parse_macro_input, parse_quote, parse_str,
+    parse_macro_input, parse_quote,
     spanned::Spanned,
     token::Comma,
-    Attribute, FnArg, Ident, ImplItem, ImplItemMethod, ImplItemType, ItemImpl, Pat, PatType,
-    ReturnType, Token, Type, Visibility,
+    Attribute, FnArg, Ident, Pat, PatType, ReturnType, Token, Type, Visibility,
 };
 
 /// Accumulates multiple errors into a result.
@@ -32,11 +31,11 @@ macro_rules! extend_errors {
     };
 }
 
-macro_rules! d {
-    ($v: expr) => {{
-        eprintln!("{} = {:#?}", stringify!($v), $v);
-    }};
-}
+// macro_rules! d {
+//     ($v: expr) => {{
+//         eprintln!("{} = {:#?}", stringify!($v), $v);
+//     }};
+// }
 
 struct Service {
     attrs: Vec<Attribute>,
@@ -194,10 +193,8 @@ pub fn service(attr: TokenStream, input: TokenStream) -> TokenStream {
 
     let generator = ServiceGenerator {
         service_ident: ident,
-        server_ident: &format_ident!("Serve{}", ident),
         client_ident: &format_ident!("{}Client", ident),
         request_ident: &format_ident!("{}Request", ident),
-        response_ident: &format_ident!("{}Response", ident),
         vis,
         args,
         method_attrs: &rpcs.iter().map(|rpc| &*rpc.attrs).collect::<Vec<_>>(),
@@ -220,146 +217,22 @@ pub fn service(attr: TokenStream, input: TokenStream) -> TokenStream {
             .zip(camel_case_fn_names.iter())
             .map(|(rpc, name)| Ident::new(name, rpc.ident.span()))
             .collect::<Vec<_>>(),
-        future_types: &camel_case_fn_names
-            .iter()
-            .map(|name| parse_str(&format!("{name}Fut")).unwrap())
-            .collect::<Vec<_>>(),
         derive_serialize: &derive_serialize,
     };
 
-    let code = generator.into_token_stream().into();
-    eprintln!("{:#}", code);
-    code
-}
-
-/// generate an identifier consisting of the method name to CamelCase with
-/// Fut appended to it.
-fn associated_type_for_rpc(method: &ImplItemMethod) -> String {
-    use heck::ToUpperCamelCase;
-    method.sig.ident.unraw().to_string().to_upper_camel_case() + "Fut"
-}
-
-/// Transforms an async function into a sync one, returning a type declaration
-/// for the return type (a future).
-fn transform_method(method: &mut ImplItemMethod) -> ImplItemType {
-    method.sig.asyncness = None;
-
-    // get either the return type or ().
-    let ret = match &method.sig.output {
-        ReturnType::Default => quote!(()),
-        ReturnType::Type(_, ret) => quote!(#ret),
-    };
-
-    let fut_name = associated_type_for_rpc(method);
-    let fut_name_ident = Ident::new(&fut_name, method.sig.ident.span());
-
-    // generate the updated return signature.
-    method.sig.output = parse_quote! {
-        -> ::core::pin::Pin<Box<
-                dyn ::core::future::Future<Output = #ret> + ::core::marker::Send
-            >>
-    };
-
-    // transform the body of the method into Box::pin(async move { body }).
-    let block = method.block.clone();
-    method.block = parse_quote! [{
-        Box::pin(async move
-            #block
-        )
-    }];
-
-    // generate and return type declaration for return type.
-    let t: ImplItemType = parse_quote! {
-        type #fut_name_ident = ::core::pin::Pin<Box<dyn ::core::future::Future<Output = #ret> + ::core::marker::Send>>;
-    };
-
-    t
-}
-
-#[proc_macro_attribute]
-pub fn server(_attr: TokenStream, input: TokenStream) -> TokenStream {
-    let mut item = syn::parse_macro_input!(input as ItemImpl);
-    let span = item.span();
-
-    // the generated type declarations
-    let mut types: Vec<ImplItemType> = Vec::new();
-    let mut expected_non_async_types: Vec<(&ImplItemMethod, String)> = Vec::new();
-    let mut found_non_async_types: Vec<&ImplItemType> = Vec::new();
-
-    for inner in &mut item.items {
-        match inner {
-            ImplItem::Method(method) => {
-                if method.sig.asyncness.is_some() {
-                    // if this function is declared async, transform it into a regular function
-                    let type_decl = transform_method(method);
-                    types.push(type_decl);
-                } else {
-                    // If it's not async, keep track of all required associated types for better
-                    // error reporting.
-                    expected_non_async_types.push((method, associated_type_for_rpc(method)));
-                }
-            }
-            ImplItem::Type(type_decl) => found_non_async_types.push(type_decl),
-            _ => {}
-        }
-    }
-
-    if let Err(e) =
-        verify_types_were_provided(span, &expected_non_async_types, &found_non_async_types)
-    {
-        return TokenStream::from(e.to_compile_error());
-    }
-
-    // add the type declarations into the impl block
-    for t in types.into_iter() {
-        item.items.push(syn::ImplItem::Type(t));
-    }
-
-    TokenStream::from(quote!(#item))
-}
-
-fn verify_types_were_provided(
-    span: Span,
-    expected: &[(&ImplItemMethod, String)],
-    provided: &[&ImplItemType],
-) -> syn::Result<()> {
-    let mut result = Ok(());
-    for (method, expected) in expected {
-        if !provided.iter().any(|type_decl| type_decl.ident == expected) {
-            let mut e = syn::Error::new(
-                span,
-                format!("not all trait items implemented, missing: `{expected}`"),
-            );
-            let fn_span = method.sig.fn_token.span();
-            e.extend(syn::Error::new(
-                fn_span.join(method.sig.ident.span()).unwrap_or(fn_span),
-                format!(
-                    "hint: `#[may_rpc::server]` only rewrites async fns, and `fn {}` is not async",
-                    method.sig.ident
-                ),
-            ));
-            match result {
-                Ok(_) => result = Err(e),
-                Err(ref mut error) => error.extend(Some(e)),
-            }
-        }
-    }
-    result
+    generator.into_token_stream().into()
 }
 
 // Things needed to generate the service items: trait, serve impl, request/response enums, and
 // the client stub.
 struct ServiceGenerator<'a> {
     service_ident: &'a Ident,
-    server_ident: &'a Ident,
     client_ident: &'a Ident,
     request_ident: &'a Ident,
-    response_ident: &'a Ident,
     vis: &'a Visibility,
     attrs: &'a [Attribute],
     rpcs: &'a [RpcMethod],
     camel_case_idents: &'a [Ident],
-    future_types: &'a [Type],
     method_idents: &'a [&'a Ident],
     method_attrs: &'a [&'a [Attribute]],
     args: &'a [&'a [PatType]],
@@ -397,20 +270,6 @@ impl<'a> ServiceGenerator<'a> {
             #( #attrs )*
             #vis trait #service_ident: Sized {
                 #( #types_and_fns )*
-            }
-        }
-    }
-
-    fn struct_server(&self) -> TokenStream2 {
-        let &Self {
-            vis, server_ident, ..
-        } = self;
-
-        quote! {
-            /// A serving function to use with [may_rpc::server::InFlightRequest::execute].
-            #[derive(Clone)]
-            #vis struct #server_ident<S> {
-                service: S,
             }
         }
     }
@@ -466,94 +325,6 @@ impl<'a> ServiceGenerator<'a> {
             }
         }
     }
-
-    fn enum_response(&self) -> TokenStream2 {
-        let &Self {
-            derive_serialize,
-            vis,
-            response_ident,
-            camel_case_idents,
-            return_types,
-            ..
-        } = self;
-
-        quote! {
-            /// The response sent over the wire from the server to the client.
-            #[allow(missing_docs)]
-            #[derive(Debug)]
-            #derive_serialize
-            #vis enum #response_ident {
-                #( #camel_case_idents(#return_types) ),*
-            }
-        }
-    }
-
-    // fn enum_response_future(&self) -> TokenStream2 {
-    //     let &Self {
-    //         vis,
-    //         service_ident,
-    //         response_fut_ident,
-    //         camel_case_idents,
-    //         future_types,
-    //         ..
-    //     } = self;
-
-    //     quote! {
-    //         /// A future resolving to a server response.
-    //         #[allow(missing_docs)]
-    //         #vis enum #response_fut_ident<S: #service_ident> {
-    //             #( #camel_case_idents(<S as #service_ident>::#future_types) ),*
-    //         }
-    //     }
-    // }
-
-    // fn impl_debug_for_response_future(&self) -> TokenStream2 {
-    //     let &Self {
-    //         service_ident,
-    //         response_fut_ident,
-    //         // response_fut_name,
-    //         ..
-    //     } = self;
-
-    //     quote! {
-    //         impl<S: #service_ident> std::fmt::Debug for #response_fut_ident<S> {
-    //             fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
-    //                 fmt.debug_struct(#response_fut_name).finish()
-    //             }
-    //         }
-    //     }
-    // }
-
-    // fn impl_future_for_response_future(&self) -> TokenStream2 {
-    //     let &Self {
-    //         service_ident,
-    //         response_fut_ident,
-    //         response_ident,
-    //         camel_case_idents,
-    //         ..
-    //     } = self;
-
-    //     quote! {
-    //         impl<S: #service_ident> std::future::Future for #response_fut_ident<S> {
-    //             type Output = #response_ident;
-
-    //             fn poll(self: std::pin::Pin<&mut Self>, cx: &mut std::task::Context<'_>)
-    //                 -> std::task::Poll<#response_ident>
-    //             {
-    //                 unsafe {
-    //                     match std::pin::Pin::get_unchecked_mut(self) {
-    //                         #(
-    //                             #response_fut_ident::#camel_case_idents(resp) =>
-    //                                 std::pin::Pin::new_unchecked(resp)
-    //                                     .poll(cx)
-    //                                     .map(#response_ident::#camel_case_idents),
-    //                         )*
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
 
     fn struct_client(&self) -> TokenStream2 {
         let &Self {
@@ -641,4 +412,76 @@ impl<'a> ToTokens for ServiceGenerator<'a> {
             self.impl_dispatch_for_server(),
         ])
     }
+}
+
+macro_rules! bail {
+    ($t: expr, $msg: expr) => {
+        return Err(attr_error($t, $msg))
+    };
+}
+
+fn attr_error<T: quote::ToTokens>(tokens: T, message: &str) -> syn::Error {
+    syn::Error::new(tokens.span(), message)
+}
+
+fn get_attr(attr_ident: &str, attrs: Vec<syn::Attribute>) -> Option<syn::Attribute> {
+    for attr in attrs {
+        if attr.path.segments.len() == 1 && attr.path.segments[0].ident == attr_ident {
+            return Some(attr);
+        }
+    }
+    None
+}
+
+fn get_service_from_attr(attr: Option<syn::Attribute>) -> Result<syn::Path, syn::Error> {
+    if attr.is_none() {
+        bail!(attr, "expected `service` attributes");
+    }
+
+    let meta = attr.unwrap().parse_meta();
+    match meta {
+        Ok(syn::Meta::List(meta_list)) => {
+            // We expect only one expression
+            if meta_list.nested.len() != 1 {
+                bail!(meta_list.nested, "`service` attributes need one param");
+            }
+            // Expecting `service()`
+            match &meta_list.nested[0] {
+                syn::NestedMeta::Meta(syn::Meta::Path(path)) => Ok(path.clone()),
+                other => bail!(other, "expected `service(RpcService)`"),
+            }
+        }
+        _ => bail!("", "`service` attributes need at least one param"),
+    }
+}
+
+#[proc_macro_derive(Server, attributes(service))]
+pub fn derive_test_factory(input: TokenStream) -> TokenStream {
+    let ast = parse_macro_input!(input as syn::DeriveInput);
+    let struct_ident = ast.ident;
+    let attrs = ast.attrs;
+
+    let service_attr = get_attr("service", attrs);
+    let service = get_service_from_attr(service_attr);
+
+    if let Err(err) = service {
+        return err.to_compile_error().into();
+    }
+
+    let service = service.unwrap().to_token_stream();
+    let request_type_indent = Ident::new(&format!("{}Request", service), struct_ident.span());
+
+    let out = quote!(
+        impl may_rpc::conetty::Server for #struct_ident {
+            fn service(&self, req: &[u8], rsp: &mut may_rpc::conetty::RspBuf) -> Result<(), may_rpc::conetty::WireError> {
+                // deserialize the request
+                let request: #request_type_indent = may_rpc::bincode::deserialize(req)
+                    .map_err(|e| may_rpc::conetty::WireError::ServerDeserialize(e.to_string()))?;
+                // get the dispatch_fn
+                Self::dispatch_req(request, rsp)
+            }
+        }
+    );
+    // eprintln!("{}", out);
+    out.into()
 }

@@ -19,32 +19,29 @@ may_rpc = { git = "https://github.com/Xudong-Huang/may_rpc" }
 ## Example
 
 ```rust
-#[macro_use]
-extern crate may_rpc;
-#[macro_use]
-extern crate serde_derive;
-
-rpc! {
-   rpc hello(name: String) -> String;
+#[may_rpc::service]
+trait Hello {
+    fn hello(name: String) -> String;
 }
 
-struct HelloImpl;
+#[derive(may_rpc::Server)]
+#[service(Hello)]
+struct HelloServer;
 
-impl RpcSpec for HelloImpl {
-   fn hello(&self, name: String) -> String {
-       format!("Hello, {}!", name)
-   }
+impl Hello for HelloServer {
+    fn hello(&self, name: String) -> String {
+        format!("Hello, {}!", name)
+    }
 }
 
 fn main() {
-   let addr = "localhost:10000";
-   let server = RpcServer(HelloImpl).start(addr).unwrap();
-   let client = RpcClient::connect(addr).unwrap();
-   println!("{}", client.hello("Mom".to_string()).unwrap());
+    use may_rpc::TcpServer;
+    let addr = "127.0.0.1:10000";
+    let _server = HelloServer.start(addr).unwrap();
 
-   // terminate the server
-   unsafe { server.coroutine().cancel(); }
-   server.join().unwrap()
+    let stream = may::net::TcpStream::connect(addr).unwrap();
+    let client = HelloClient::new(stream).unwrap();
+    println!("{}", client.hello("Mom".to_string()).unwrap());
 }
 ```
 
@@ -54,7 +51,7 @@ See the examples directory for more examples.
 
 ### Errors
 
-All generated may_rpc RPC methods return `Result<T, conetty::Error>`. the Error reason could be an io error or timeout. 
+All generated may_rpc RPC methods return `Result<T, may_rpc::conetty::Error>`. the Error reason could be an io error or timeout. 
 
 Default timeout is 10s while you can configure through the RpcClient instance.
 
