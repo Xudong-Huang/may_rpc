@@ -8,9 +8,11 @@ pub trait Hello {
 	fn add(x: u32, y: u32) -> u32;
 }
 
-/// implement the server
 #[may_rpc::server]
-impl Hello for HelloServer {
+pub struct HelloService;
+
+/// implement the server
+impl Hello for HelloService {
 	fn echo(data: String) -> String {
 		data
 	}
