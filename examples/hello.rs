@@ -4,10 +4,9 @@ extern crate may_rpc;
 extern crate env_logger;
 
 // cargo rustc --bin main -- -Z unstable-options --pretty expanded
-
 rpc! {
     /// the connection type, default is Tcp
-    net: Udp;
+    net: Tcp;
     /// Say hello
     rpc hello(name: String) -> String;
     /// add two number

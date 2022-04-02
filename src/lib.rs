@@ -55,20 +55,6 @@ pub extern crate conetty;
 pub extern crate may;
 pub extern crate serde;
 
-/// dispatch rpc client according to connection type
-#[macro_export]
-macro_rules! rpc_client {
-    (Tcp) => {
-        $crate::conetty::TcpClient
-    };
-    (Udp) => {
-        $crate::conetty::UdpClient
-    };
-    (Multiplex) => {
-        $crate::conetty::MultiplexClient
-    };
-}
-
 /// dispatch rpc server according to connection type
 #[macro_export]
 macro_rules! rpc_server_start {
@@ -211,12 +197,13 @@ macro_rules! rpc {
         }
 
         #[derive(Debug)]
-        pub struct RpcClient(rpc_client!($net_type));
+        pub struct RpcClient($crate::conetty::MultiplexClient<$crate::may::net::TcpStream>);
 
         impl RpcClient {
             pub fn connect<L: ::std::net::ToSocketAddrs>(addr: L) -> ::std::io::Result<RpcClient> {
-                type Client = rpc_client!($net_type);
-                Client::connect(addr).map(RpcClient)
+                type Client = $crate::conetty::MultiplexClient<$crate::may::net::TcpStream>;
+                let stream = $crate::may::net::TcpStream::connect(addr)?;
+                Client::new(stream).map(RpcClient)
             }
 
             #[allow(dead_code)]
