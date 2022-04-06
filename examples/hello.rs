@@ -2,16 +2,16 @@
 #[may_rpc::service]
 trait RpcSpec {
     /// Say hello
-    fn hello(name: String) -> String;
+    fn hello(&self, name: String) -> String;
     /// add two number
-    fn add(x: u32, y: u32) -> u32;
+    fn add(&self, x: u32, y: u32) -> u32;
 }
 
 mod count {
     #[may_rpc::service]
     pub trait RpcSpec {
         /// get current count
-        fn get_count() -> usize;
+        fn get_count(&self) -> usize;
     }
 }
 

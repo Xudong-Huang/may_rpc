@@ -1,6 +1,6 @@
 #[may_rpc::service]
 trait RpcSpec {
-    fn add(x: u32, y: u32) -> u32;
+    fn add(&self, x: u32, y: u32) -> u32;
 }
 
 #[derive(may_rpc::Server)]

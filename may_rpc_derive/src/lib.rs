@@ -100,6 +100,7 @@ impl Parse for RpcMethod {
         parenthesized!(content in input);
         let mut args = Vec::new();
         let mut errors = Ok(());
+        let mut found_self = false;
         for arg in content.parse_terminated::<FnArg, Comma>(FnArg::parse)? {
             match arg {
                 FnArg::Typed(captured) if matches!(&*captured.pat, Pat::Ident(_)) => {
@@ -111,13 +112,22 @@ impl Parse for RpcMethod {
                         syn::Error::new(captured.pat.span(), "patterns aren't allowed in RPC args")
                     );
                 }
-                FnArg::Receiver(_) => {
-                    extend_errors!(
-                        errors,
-                        syn::Error::new(arg.span(), "method args cannot start with self")
-                    );
+                FnArg::Receiver(me) => {
+                    found_self = true;
+                    if me.mutability.is_some() {
+                        extend_errors!(errors, syn::Error::new(me.span(), "self can't be mutable"));
+                    }
+                    if me.reference.is_none() {
+                        extend_errors!(errors, syn::Error::new(me.span(), "self must be &self"));
+                    }
                 }
             }
+        }
+        if !found_self {
+            extend_errors!(
+                errors,
+                syn::Error::new(content.span(), "rpc method must start with &self")
+            );
         }
         errors?;
         let output = input.parse()?;

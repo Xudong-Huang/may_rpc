@@ -4,7 +4,7 @@ use std::sync::Arc;
 #[may_rpc::service]
 trait RpcSpec {
     /// get current count
-    fn get_count() -> usize;
+    fn get_count(&self) -> usize;
 }
 
 #[derive(may_rpc::Server)]

@@ -3,7 +3,7 @@ use std::time::Instant;
 
 #[may_rpc::service]
 trait Rpc {
-    fn ack(n: usize) -> usize;
+    fn ack(&self, n: usize) -> usize;
 }
 
 #[derive(may_rpc::Server)]

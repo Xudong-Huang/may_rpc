@@ -7,7 +7,7 @@ use test::Bencher;
 
 #[may_rpc::service]
 trait RpcSpec {
-    fn ack();
+    fn ack(&self);
 }
 
 #[derive(may_rpc::Server)]
