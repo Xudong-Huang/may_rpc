@@ -1,8 +1,3 @@
-extern crate may;
-#[macro_use]
-extern crate may_rpc;
-extern crate env_logger;
-
 // cargo rustc --bin main -- -Z unstable-options --pretty expanded
 #[may_rpc::service]
 trait RpcSpec {
@@ -14,14 +9,17 @@ trait RpcSpec {
 
 mod count {
     #[may_rpc::service]
-    trait RpcSpec {
+    pub trait RpcSpec {
         /// get current count
         fn get_count() -> usize;
     }
 }
 
 fn test_count() {
+    use may_rpc::conetty::TcpServer;
     use std::sync::atomic::{AtomicUsize, Ordering};
+    #[derive(may_rpc::Server)]
+    #[service(count::RpcSpec)]
     struct CountImpl(AtomicUsize);
     impl count::RpcSpec for CountImpl {
         fn get_count(&self) -> usize {
@@ -30,10 +28,10 @@ fn test_count() {
     }
 
     let addr = ("127.0.0.1", 4000);
-    let server = count::RpcServer(CountImpl(AtomicUsize::new(0)))
-        .start(&addr)
-        .unwrap();
-    let mut client = count::RpcClient::connect(addr).unwrap();
+    let server = CountImpl(AtomicUsize::new(0)).start(&addr).unwrap();
+
+    let tcp_stream = may::net::TcpStream::connect(addr).unwrap();
+    let mut client = count::RpcSpecClient::new(tcp_stream).unwrap();
     client.set_timeout(::std::time::Duration::from_millis(100));
 
     for _ in 0..10 {
@@ -41,12 +39,16 @@ fn test_count() {
         println!("recv = {:?}", data);
     }
 
-    unsafe { server.coroutine().cancel() };
-    server.join().ok();
+    server.shutdown();
 }
 
 fn test_hello() {
+    use may_rpc::conetty::TcpServer;
+
+    #[derive(may_rpc::Server)]
+    #[service(RpcSpec)]
     struct HelloImpl;
+
     impl RpcSpec for HelloImpl {
         fn hello(&self, name: String) -> String {
             name
@@ -58,8 +60,9 @@ fn test_hello() {
     }
 
     let addr = ("127.0.0.1", 4000);
-    let server = RpcServer(HelloImpl).start(&addr).unwrap();
-    let client = RpcClient::connect(addr).unwrap();
+    let server = HelloImpl.start(&addr).unwrap();
+    let tcp_stream = may::net::TcpStream::connect(addr).unwrap();
+    let client = RpcSpecClient::new(tcp_stream).unwrap();
 
     for i in 0..10 {
         let s = format!("Hello World! id={}", i);
@@ -72,8 +75,7 @@ fn test_hello() {
         println!("recv = {:?}", data);
     }
 
-    unsafe { server.coroutine().cancel() };
-    server.join().ok();
+    server.shutdown();
 }
 
 fn main() {

@@ -14,11 +14,11 @@ pub struct HelloService;
 
 /// implement the server
 impl Hello for HelloService {
-    fn echo(data: String) -> String {
+    fn echo(&self, data: String) -> String {
         data
     }
 
-    fn add(x: u32, y: u32) -> u32 {
+    fn add(&self, x: u32, y: u32) -> u32 {
         x + y
     }
 }

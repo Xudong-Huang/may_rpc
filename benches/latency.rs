@@ -1,16 +1,17 @@
 #![feature(test)]
-#[macro_use]
-extern crate may_rpc;
 
 #[cfg(test)]
 extern crate test;
 #[cfg(test)]
 use test::Bencher;
 
-rpc! {
-    rpc ack();
+#[may_rpc::service]
+trait RpcSpec {
+    fn ack();
 }
 
+#[derive(may_rpc::Server)]
+#[service(RpcSpec)]
 struct Server;
 
 impl RpcSpec for Server {
@@ -20,14 +21,15 @@ impl RpcSpec for Server {
 #[cfg(test)]
 #[bench]
 fn latency(bencher: &mut Bencher) {
+    use may_rpc::conetty::TcpServer;
     let addr = ("127.0.0.1", 4000);
-    let server = RpcServer(Server).start(&addr).unwrap();
-    let client = RpcClient::connect(addr).unwrap();
+    let server = Server.start(&addr).unwrap();
+    let tcp_stream = may::net::TcpStream::connect(addr).unwrap();
+    let client = RpcSpecClient::new(tcp_stream).unwrap();
 
     bencher.iter(|| {
         client.ack().unwrap();
     });
 
-    unsafe { server.coroutine().cancel() };
-    server.join().ok();
+    server.shutdown();
 }

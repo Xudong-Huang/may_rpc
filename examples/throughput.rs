@@ -11,18 +11,18 @@ trait Rpc {
 struct Server;
 
 impl Rpc for Server {
-    fn ack(n: usize) -> usize {
+    fn ack(&self, n: usize) -> usize {
         n + 1
     }
 }
 
-use may_rpc::conetty::TcpServer;
-
 fn main() {
+    use may_rpc::conetty::TcpServer;
+
     env_logger::init();
     may::config().set_pool_capacity(10000);
     let addr = ("127.0.0.1", 4000);
-    let _server = Server.start(&addr).unwrap();
+    let server = Server.start(&addr).unwrap();
     let clients: Vec<_> = (0..16)
         .map(|_| {
             let stream = may::net::TcpStream::connect(&addr).unwrap();
@@ -52,6 +52,8 @@ fn main() {
     }
 
     let dur = now.elapsed();
-    let dur = dur.as_secs() as f32 + dur.subsec_nanos() as f32 / 1000_000_000.0;
+    let dur = dur.as_secs() as f32 + dur.subsec_nanos() as f32 / 1_000_000_000.0;
     println!("{} rpc/second", 10_000_000.0 / dur);
+
+    server.shutdown();
 }

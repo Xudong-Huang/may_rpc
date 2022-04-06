@@ -31,11 +31,12 @@ macro_rules! extend_errors {
     };
 }
 
-// macro_rules! d {
-//     ($v: expr) => {{
-//         eprintln!("{} = {:#?}", stringify!($v), $v);
-//     }};
-// }
+#[allow(unused_macros)]
+macro_rules! d {
+    ($v: expr) => {{
+        eprintln!("{} = {:#?}", stringify!($v), $v);
+    }};
+}
 
 struct Service {
     attrs: Vec<Attribute>,
@@ -219,8 +220,9 @@ pub fn service(attr: TokenStream, input: TokenStream) -> TokenStream {
             .collect::<Vec<_>>(),
         derive_serialize: &derive_serialize,
     };
-
-    generator.into_token_stream().into()
+    let code = generator.into_token_stream();
+    // eprintln!("{}", code);
+    code.into()
 }
 
 // Things needed to generate the service items: trait, serve impl, request/response enums, and
@@ -261,7 +263,7 @@ impl<'a> ServiceGenerator<'a> {
             )| {
                 quote! {
                     #( #attrs )*
-                    fn #ident(#( #args ),*) -> #output;
+                    fn #ident(&self, #( #args ),*) -> #output;
                 }
             },
         );
@@ -289,11 +291,11 @@ impl<'a> ServiceGenerator<'a> {
         quote! {
             #vis trait #dispatch_service_indent: #service_ident
             {
-                fn dispatch_req(req: #request_ident, rsp: &mut conetty::RspBuf) -> Result<(), may_rpc::conetty::WireError> {
+                fn dispatch_req(&self, req: #request_ident, rsp: &mut conetty::RspBuf) -> Result<(), may_rpc::conetty::WireError> {
                     match req {
                         #(
                             #request_ident::#camel_case_idents{ #( #arg_pats ),* } => {
-                                may_rpc::bincode::serialize_into(rsp, &Self::#method_idents(#( #arg_pats ),*))
+                                may_rpc::bincode::serialize_into(rsp, &self.#method_idents(#( #arg_pats ),*))
                                     .map_err(|e| may_rpc::conetty::WireError::ServerSerialize(e.to_string()))
                             }
                         )*
@@ -464,21 +466,35 @@ pub fn derive_test_factory(input: TokenStream) -> TokenStream {
     let service_attr = get_attr("service", attrs);
     let service = get_service_from_attr(service_attr);
 
-    if let Err(err) = service {
-        return err.to_compile_error().into();
+    let mut service = match service {
+        Err(err) => return err.to_compile_error().into(),
+        Ok(s) => s,
+    };
+    let mut service_request = service.clone();
+
+    if let Some(seg) = service.segments.last_mut() {
+        seg.ident = Ident::new(
+            &format!("{}ServiceDispatch", seg.ident.to_token_stream()),
+            seg.span(),
+        );
     }
 
-    let service = service.unwrap().to_token_stream();
-    let request_type_indent = Ident::new(&format!("{}Request", service), struct_ident.span());
+    if let Some(seg) = service_request.segments.last_mut() {
+        seg.ident = Ident::new(
+            &format!("{}Request", seg.ident.to_token_stream()),
+            seg.span(),
+        );
+    }
 
     let out = quote!(
         impl may_rpc::conetty::Server for #struct_ident {
             fn service(&self, req: &[u8], rsp: &mut may_rpc::conetty::RspBuf) -> Result<(), may_rpc::conetty::WireError> {
+                use #service;
                 // deserialize the request
-                let request: #request_type_indent = may_rpc::bincode::deserialize(req)
+                let request: #service_request = may_rpc::bincode::deserialize(req)
                     .map_err(|e| may_rpc::conetty::WireError::ServerDeserialize(e.to_string()))?;
                 // get the dispatch_fn
-                Self::dispatch_req(request, rsp)
+                self.dispatch_req(request, rsp)
             }
         }
     );

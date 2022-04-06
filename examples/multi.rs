@@ -20,7 +20,7 @@ impl RpcSpec for CountImpl {
 fn main() {
     use may_rpc::conetty::TcpServer;
     let addr = ("127.0.0.1", 4000);
-    let _server = CountImpl(AtomicUsize::new(0)).start(&addr).unwrap();
+    let server = CountImpl(AtomicUsize::new(0)).start(&addr).unwrap();
 
     let stream = may::net::TcpStream::connect(addr).unwrap();
     let client = Arc::new(RpcSpecClient::new(stream).unwrap());
@@ -30,10 +30,9 @@ fn main() {
         let client = client.clone();
         let j = may::go!(move || {
             for _j in 0..1000 {
-                match client.get_count() {
+                if let Err(err) = client.get_count() {
                     // Ok(data) => println!("recv = {:?}", str::from_utf8(&data).unwrap()),
-                    Err(err) => println!("recv err = {:?}", err),
-                    _ => {}
+                    println!("recv err = {:?}", err);
                 }
             }
             println!("thread done, id={}", i);
@@ -45,4 +44,6 @@ fn main() {
         j.join().unwrap();
         println!("wait for {} done", i);
     }
+
+    server.shutdown();
 }

@@ -18,16 +18,11 @@ description = "RPC framework for Rust based on coroutine."
 may = "0.3"
 bincode = "1"
 serde = { version = "1", features = ["derive"] }
-# conetty = { git = "https://github.com/Xudong-Huang/conetty.git" }
-conetty = { path = "../conetty" }
+conetty = { git = "https://github.com/Xudong-Huang/conetty.git" }
 may_rpc_derive = { path = "./may_rpc_derive" }
 
 [dev-dependencies]
 env_logger = "0.9"
 
 [workspace]
-members = [
-	"may_rpc_test",
-	"may_rpc_derive",
-]
-
+members = ["may_rpc_test", "may_rpc_derive"]
