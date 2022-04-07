@@ -301,12 +301,12 @@ impl<'a> ServiceGenerator<'a> {
         quote! {
             #vis trait #dispatch_service_indent: #service_ident + std::panic::RefUnwindSafe
             {
-                fn dispatch_req(&self, req: #request_ident, rsp: &mut conetty::RspBuf) -> Result<(), may_rpc::conetty::WireError> {
+                fn dispatch_req(&self, req: #request_ident, rsp: &mut may_rpc::conetty::RspBuf) -> Result<(), may_rpc::conetty::WireError> {
                     match req {
                         #(
                             #request_ident::#camel_case_idents{ #( #arg_pats ),* } => match std::panic::catch_unwind(|| self.#method_idents(#( #arg_pats ),*)) {
                                 Ok(ret) => may_rpc::bincode::serialize_into(rsp, &ret).map_err(|e| may_rpc::conetty::WireError::ServerSerialize(e.to_string())),
-                                Err(_) => Err(conetty::WireError::Status("rpc panicked in server!".to_owned())),
+                                Err(_) => Err(may_rpc::conetty::WireError::Status("rpc panicked in server!".to_owned())),
                             }
                         )*
                     }

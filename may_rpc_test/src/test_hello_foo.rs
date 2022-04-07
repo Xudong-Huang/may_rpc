@@ -24,21 +24,20 @@ impl<S: conetty::StreamExt> HelloClient<S> {
     }
 }
 
-impl<S: may_rpc::conetty::StreamExt> HelloClient<S> {
-    pub fn echo(&self, data: String) -> Result<String, may_rpc::conetty::Error> {
-        use may_rpc::conetty::Client;
+impl<S: conetty::StreamExt> HelloClient<S> {
+    pub fn echo(&self, data: String) -> Result<String, conetty::Error> {
+        use conetty::Client;
 
-        let mut req = may_rpc::conetty::ReqBuf::new();
+        let mut req = conetty::ReqBuf::new();
         // serialize the request
         let request = HelloRequest::Echo { data };
         bincode::serialize_into(&mut req, &request)
-            .map_err(|e| may_rpc::conetty::Error::ClientSerialize(e.to_string()))?;
+            .map_err(|e| conetty::Error::ClientSerialize(e.to_string()))?;
         // call the server
         let rsp_frame = self.transport.call_service(req)?;
         let rsp = rsp_frame.decode_rsp()?;
         // deserialized the response
-        bincode::deserialize(rsp)
-            .map_err(|e| may_rpc::conetty::Error::ClientDeserialize(e.to_string()))
+        bincode::deserialize(rsp).map_err(|e| conetty::Error::ClientDeserialize(e.to_string()))
     }
 
     pub fn add(&self, x: u32, y: u32) -> Result<u32, conetty::Error> {
