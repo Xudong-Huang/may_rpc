@@ -8,7 +8,7 @@ trait RpcSpec {
 struct RcpServer;
 impl RpcSpec for RcpServer {
     fn add(&self, _x: u32, _y: u32) -> u32 {
-        panic!("painc in side")
+        panic!("panic in side")
     }
 }
 

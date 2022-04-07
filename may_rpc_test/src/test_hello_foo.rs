@@ -57,7 +57,7 @@ impl<S: may_rpc::conetty::StreamExt> HelloClient<S> {
     }
 }
 
-pub trait HelloServiceDispatch: Hello {
+pub trait HelloServiceDispatch: Hello + std::panic::RefUnwindSafe {
     fn dispatch_req(
         &self,
         request: HelloRequest,
@@ -65,15 +65,25 @@ pub trait HelloServiceDispatch: Hello {
     ) -> Result<(), conetty::WireError> {
         // dispatch call the service
         match request {
-            HelloRequest::Echo { data } => bincode::serialize_into(rsp, &self.echo(data))
-                .map_err(|e| conetty::WireError::ServerSerialize(e.to_string())),
-            HelloRequest::Add { x, y } => bincode::serialize_into(rsp, &self.add(x, y))
-                .map_err(|e| conetty::WireError::ServerSerialize(e.to_string())),
+            HelloRequest::Echo { data } => match std::panic::catch_unwind(|| self.echo(data)) {
+                Ok(ret) => bincode::serialize_into(rsp, &ret)
+                    .map_err(|e| conetty::WireError::ServerSerialize(e.to_string())),
+                Err(_) => Err(conetty::WireError::Status(
+                    "rpc panicked in server!".to_owned(),
+                )),
+            },
+            HelloRequest::Add { x, y } => match std::panic::catch_unwind(|| self.add(x, y)) {
+                Ok(ret) => bincode::serialize_into(rsp, &ret)
+                    .map_err(|e| conetty::WireError::ServerSerialize(e.to_string())),
+                Err(_) => Err(conetty::WireError::Status(
+                    "rpc panicked in server!".to_owned(),
+                )),
+            },
         }
     }
 }
 
-impl<T: Hello> HelloServiceDispatch for T {}
+impl<T: Hello + std::panic::RefUnwindSafe> HelloServiceDispatch for T {}
 
 mod server {
     use super::{Hello, HelloRequest};
