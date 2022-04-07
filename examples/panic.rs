@@ -15,12 +15,11 @@ impl RpcSpec for RcpServer {
 fn main() {
     use may_rpc::conetty::TcpServer;
     let addr = ("127.0.0.1", 4000);
-    let server = RcpServer.start(&addr).unwrap();
+    let _server = RcpServer.start(&addr).unwrap();
 
     let stream = may::net::TcpStream::connect(&addr).unwrap();
     let client = RpcSpecClient::new(stream).unwrap();
     println!("rsp = {:?}", client.add(1, 4));
     // assert_eq!(client.add(1, 4).is_err(), true);
     println!("done");
-    server.shutdown();
 }
