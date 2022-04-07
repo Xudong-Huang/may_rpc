@@ -468,7 +468,7 @@ fn get_service_from_attr(attr: Option<syn::Attribute>) -> Result<syn::Path, syn:
 }
 
 #[proc_macro_derive(Server, attributes(service))]
-pub fn derive_test_factory(input: TokenStream) -> TokenStream {
+pub fn derive_rpc_server(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as syn::DeriveInput);
     let struct_ident = ast.ident;
     let attrs = ast.attrs;

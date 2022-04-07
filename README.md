@@ -21,7 +21,7 @@ may_rpc = { git = "https://github.com/Xudong-Huang/may_rpc" }
 ```rust
 #[may_rpc::service]
 trait Hello {
-    fn hello(name: String) -> String;
+    fn hello(&self, name: String) -> String;
 }
 
 #[derive(may_rpc::Server)]
@@ -37,11 +37,13 @@ impl Hello for HelloServer {
 fn main() {
     use may_rpc::TcpServer;
     let addr = "127.0.0.1:10000";
-    let _server = HelloServer.start(addr).unwrap();
+    let server = HelloServer.start(addr).unwrap();
 
     let stream = may::net::TcpStream::connect(addr).unwrap();
     let client = HelloClient::new(stream).unwrap();
     println!("{}", client.hello("Mom".to_string()).unwrap());
+
+    server.shutdown();
 }
 ```
 
