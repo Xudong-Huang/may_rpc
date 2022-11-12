@@ -22,10 +22,10 @@ fn main() {
     env_logger::init();
     may::config().set_pool_capacity(10000);
     let addr = ("127.0.0.1", 4000);
-    let _server = Server.start(&addr).unwrap();
+    let _server = Server.start(addr).unwrap();
     let clients: Vec<_> = (0..16)
         .map(|_| {
-            let stream = may::net::TcpStream::connect(&addr).unwrap();
+            let stream = may::net::TcpStream::connect(addr).unwrap();
             RpcClient::new(stream).unwrap()
         })
         .collect();

@@ -437,12 +437,9 @@ fn attr_error<T: quote::ToTokens>(tokens: T, message: &str) -> syn::Error {
 }
 
 fn get_attr(attr_ident: &str, attrs: Vec<syn::Attribute>) -> Option<syn::Attribute> {
-    for attr in attrs {
-        if attr.path.segments.len() == 1 && attr.path.segments[0].ident == attr_ident {
-            return Some(attr);
-        }
-    }
-    None
+    attrs
+        .into_iter()
+        .find(|attr| attr.path.segments.len() == 1 && attr.path.segments[0].ident == attr_ident)
 }
 
 fn get_service_from_attr(attr: Option<syn::Attribute>) -> Result<syn::Path, syn::Error> {

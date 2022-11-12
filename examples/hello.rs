@@ -28,7 +28,7 @@ fn test_count() {
     }
 
     let addr = ("127.0.0.1", 4000);
-    let _server = CountImpl(AtomicUsize::new(0)).start(&addr).unwrap();
+    let _server = CountImpl(AtomicUsize::new(0)).start(addr).unwrap();
 
     let tcp_stream = may::net::TcpStream::connect(addr).unwrap();
     let mut client = count::RpcSpecClient::new(tcp_stream).unwrap();
@@ -58,7 +58,7 @@ fn test_hello() {
     }
 
     let addr = ("127.0.0.1", 4000);
-    let _server = HelloImpl.start(&addr).unwrap();
+    let _server = HelloImpl.start(addr).unwrap();
     let tcp_stream = may::net::TcpStream::connect(addr).unwrap();
     let client = RpcSpecClient::new(tcp_stream).unwrap();
 
