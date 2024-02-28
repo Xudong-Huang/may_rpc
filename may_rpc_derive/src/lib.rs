@@ -423,16 +423,6 @@ impl<'a> ToTokens for ServiceGenerator<'a> {
     }
 }
 
-macro_rules! bail {
-    ($t: expr, $msg: expr) => {
-        return Err(attr_error($t, $msg))
-    };
-}
-
-fn attr_error<T: quote::ToTokens>(tokens: T, message: &str) -> syn::Error {
-    syn::Error::new(tokens.span(), message)
-}
-
 fn get_attr(attr_ident: &str, attrs: Vec<syn::Attribute>) -> Option<syn::Attribute> {
     attrs
         .into_iter()
@@ -440,12 +430,18 @@ fn get_attr(attr_ident: &str, attrs: Vec<syn::Attribute>) -> Option<syn::Attribu
 }
 
 fn get_service_from_attr(attr: Option<syn::Attribute>) -> Result<syn::Path, syn::Error> {
-    if attr.is_none() {
-        bail!(attr, "expected `service` attributes");
-    }
-    match attr.unwrap().meta {
-        syn::Meta::List(meta_list) => meta_list.parse_args(),
-        _ => bail!("", "`service` attributes need at least one param"),
+    match attr {
+        Some(a) => match a.meta {
+            syn::Meta::List(l) => l.parse_args(),
+            _ => Err(syn::Error::new(
+                a.span(),
+                "`service` attributes need at least one param",
+            )),
+        },
+        None => Err(syn::Error::new(
+            attr.span(),
+            "expected `service` attributes",
+        )),
     }
 }
 
