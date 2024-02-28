@@ -21,7 +21,7 @@ thiserror = "1"
 co_managed = "0.1"
 may_waiter = "0.1"
 serde = { version = "1", features = ["derive"] }
-may_rpc_derive = { path = "./may_rpc_derive" }
+may_rpc_derive = { path = "./may_rpc_derive", version = "*"}
 
 [dev-dependencies]
 env_logger = "0.11"
