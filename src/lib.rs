@@ -22,8 +22,11 @@
 
 #![deny(missing_docs)]
 
+#[macro_use]
+extern crate log;
+
 // re-export conetty
-pub use conetty;
+pub mod conetty;
 // re-export conetty
 pub use bincode;
 // re-export serde
