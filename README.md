@@ -2,9 +2,9 @@
 
 Rust coroutine based RPC framework
 
-[![Build Status](https://travis-ci.org/Xudong-Huang/may_rpc.svg?branch=master)](https://travis-ci.org/Xudong-Huang/may_rpc)
-[![Build status](https://ci.appveyor.com/api/projects/status/a2y8e6f8h2r49l1d/branch/master?svg=true)](https://ci.appveyor.com/project/Xudong-Huang/may-rpc/branch/master)
-[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
+[![Build Status](https://github.com/Xudong-Huang/may_rpc/workflows/CI/badge.svg)](https://github.com/Xudong-Huang/may_rpc/actions?query=workflow%3ACI)
+[![Current Crates.io Version](https://img.shields.io/crates/v/may_rpc.svg)](https://crates.io/crates/may_rpc)
+[![Document](https://img.shields.io/badge/doc-may_rpc-green.svg)](https://docs.rs/may_rpc)
 
 may_rpc is an RPC framework for rust based on coroutines that powered by [may](https://github.com/Xudong-Huang/may) with a focus on ease of use. Inspired by [tarpc](https://github.com/google/tarpc).
 
@@ -13,7 +13,7 @@ may_rpc is an RPC framework for rust based on coroutines that powered by [may](h
 Add to your `Cargo.toml` dependencies:
 
 ```toml
-may_rpc = { git = "https://github.com/Xudong-Huang/may_rpc" }
+may_rpc = "0.1"
 ```
 
 ## Example
@@ -47,13 +47,13 @@ fn main() {
 }
 ```
 
-The `rpc!` macro expands to a collection of items that form an rpc service. In the above example, the `rcp!` macro is called with a **rcp spec**. This will generate `RpcClient` type, `RpcServer` type and `RpcSpec` trait. These generated types make it easy and ergonomic to write servers without dealing with sockets or serialization directly. Simply implement the generated traits, and you're off to the races! 
+The `service` attribute macro expands to a collection of items that form an rpc service. In the above example, the `service` macro is derived for a  **Hello** rcp spec trait. This will generate `HelloClient` for ease of use. Then the `HelloServer` type derive `Server` and impl `Hello` trait for a rpc server. The generated types make it easy and ergonomic to write servers without dealing with sockets or serialization directly. Simply implement the generated traits, and you're off to the races!
 
 See the examples directory for more examples.
 
 ### Errors
 
-All generated may_rpc RPC methods return `Result<T, may_rpc::conetty::Error>`. the Error reason could be an io error or timeout. 
+All generated may_rpc RPC methods return `Result<T, may_rpc::Error>`. the Error reason could be an io error or timeout.
 
 Default timeout is 10s while you can configure through the RpcClient instance.
 
@@ -92,6 +92,7 @@ $ cargo run --example=throughput --release
 
 ## License
 
-may_rpc is distributed under the terms of the MIT license.
+This project is licensed under either of the following, at your option:
 
-See [LICENSE](LICENSE) for details.
+ * Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+ * MIT License ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT).
