@@ -32,10 +32,10 @@ fn main() {
     let clients = Arc::new(clients);
     let mut vec = vec![];
     let now = Instant::now();
-    for _i in 0..1000 {
+    for _i in 0..10000 {
         let clients = clients.clone();
         let h = may::go!(move || {
-            for j in 0..10000 {
+            for j in 0..1000 {
                 let idx = j & 0x0f;
                 match clients[idx].ack(j) {
                     Err(err) => println!("recv err = {:?}", err),
