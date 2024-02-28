@@ -15,7 +15,6 @@ use syn::{
     parse::{Parse, ParseStream},
     parse_macro_input, parse_quote,
     spanned::Spanned,
-    token::Comma,
     Attribute, FnArg, Ident, Pat, PatType, ReturnType, Token, Type, Visibility,
 };
 
@@ -93,7 +92,6 @@ impl Parse for Service {
 impl Parse for RpcMethod {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let attrs = input.call(Attribute::parse_outer)?;
-        // input.parse::<Token![async]>()?;
         input.parse::<Token![fn]>()?;
         let ident = input.parse()?;
         let content;
@@ -101,7 +99,7 @@ impl Parse for RpcMethod {
         let mut args = Vec::new();
         let mut errors = Ok(());
         let mut found_self = false;
-        for arg in content.parse_terminated::<FnArg, Comma>(FnArg::parse)? {
+        for arg in content.parse_terminated(FnArg::parse, Token![,])? {
             match arg {
                 FnArg::Typed(captured) if matches!(&*captured.pat, Pat::Ident(_)) => {
                     args.push(captured);
@@ -170,10 +168,9 @@ pub fn derive_serde(_attr: TokenStream, item: TokenStream) -> TokenStream {
 pub fn service(attr: TokenStream, input: TokenStream) -> TokenStream {
     use heck::ToUpperCamelCase;
 
-    let macro_args = parse_macro_input!(attr as syn::AttributeArgs);
-    if !macro_args.is_empty() {
+    if !attr.is_empty() {
         return syn::Error::new(
-            macro_args[0].span(),
+            proc_macro2::Span::call_site(),
             "may_rpc::service does not support this attr item",
         )
         .to_compile_error()
@@ -439,27 +436,15 @@ fn attr_error<T: quote::ToTokens>(tokens: T, message: &str) -> syn::Error {
 fn get_attr(attr_ident: &str, attrs: Vec<syn::Attribute>) -> Option<syn::Attribute> {
     attrs
         .into_iter()
-        .find(|attr| attr.path.segments.len() == 1 && attr.path.segments[0].ident == attr_ident)
+        .find(|attr| attr.path().segments.len() == 1 && attr.path().segments[0].ident == attr_ident)
 }
 
 fn get_service_from_attr(attr: Option<syn::Attribute>) -> Result<syn::Path, syn::Error> {
     if attr.is_none() {
         bail!(attr, "expected `service` attributes");
     }
-
-    let meta = attr.unwrap().parse_meta();
-    match meta {
-        Ok(syn::Meta::List(meta_list)) => {
-            // We expect only one expression
-            if meta_list.nested.len() != 1 {
-                bail!(meta_list.nested, "`service` attributes need one param");
-            }
-            // Expecting `service()`
-            match &meta_list.nested[0] {
-                syn::NestedMeta::Meta(syn::Meta::Path(path)) => Ok(path.clone()),
-                other => bail!(other, "expected `service(RpcService)`"),
-            }
-        }
+    match attr.unwrap().meta {
+        syn::Meta::List(meta_list) => meta_list.parse_args(),
         _ => bail!("", "`service` attributes need at least one param"),
     }
 }

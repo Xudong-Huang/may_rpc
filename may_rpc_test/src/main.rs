@@ -8,7 +8,7 @@ fn test_foo() {
     let addr = ("127.0.0.1", 4000);
 
     let service = HelloService;
-    let _server = service.start(&addr).unwrap();
+    let _server = service.start(addr).unwrap();
 
     let tcp_stream = may::net::TcpStream::connect(addr).unwrap();
     let mut client = HelloClient::new(tcp_stream).unwrap();
@@ -32,7 +32,7 @@ fn test_bar() {
     let addr = ("127.0.0.1", 4000);
 
     let service = HelloService;
-    let _server = service.start(&addr).unwrap();
+    let _server = service.start(addr).unwrap();
 
     let tcp_stream = may::net::TcpStream::connect(addr).unwrap();
     let mut client = HelloClient::new(tcp_stream).unwrap();
