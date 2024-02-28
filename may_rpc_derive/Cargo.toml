@@ -2,6 +2,14 @@
 name = "may_rpc_derive"
 version = "0.1.0"
 edition = "2021"
+authors = ["Xudong Huang <huangxu008@hotmail.com>"]
+license = "MIT"
+documentation = "https://docs.rs/may_rpc"
+homepage = "https://github.com/Xudong-Huang/may_rpc"
+repository = "https://github.com/Xudong-Huang/may_rpc"
+keywords = ["rpc", "protocol", "remote", "procedure", "serialize"]
+readme = "README.md"
+description = "RPC framework for Rust based on coroutine."
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
