@@ -28,7 +28,6 @@ pub struct Frame {
 impl Frame {
     /// decode a frame from the reader
     pub fn decode_from<R: Read>(r: &mut R) -> io::Result<Self> {
-        use std::mem::MaybeUninit;
         let id = r.read_u64::<BigEndian>()?;
         info!("decode id = {:?}", id);
 
@@ -41,12 +40,7 @@ impl Frame {
             return Err(io::Error::new(ErrorKind::InvalidInput, s));
         }
 
-        let mut data = MaybeUninit::new(Vec::with_capacity(len as usize));
-        let mut data = unsafe {
-            // avoid one memset
-            (*data.as_mut_ptr()).set_len(len as usize);
-            data.assume_init()
-        };
+        let mut data = vec![0; len as usize];
         r.read_exact(&mut data[16..])?;
 
         // blow can be skipped, we don't need them in the buffer
@@ -95,13 +89,9 @@ impl Frame {
         // info!("decode response, ty={}, len={}", ty, len);
         match ty {
             0 => Ok(data),
-            1 => Err(ServerDeserialize(unsafe {
-                String::from_utf8_unchecked(data.into())
-            })),
-            2 => Err(ServerSerialize(unsafe {
-                String::from_utf8_unchecked(data.into())
-            })),
-            3 => Err(Status(unsafe { String::from_utf8_unchecked(data.into()) })),
+            1 => Err(ServerDeserialize(String::from_utf8(data.into()).unwrap())),
+            2 => Err(ServerSerialize(String::from_utf8(data.into()).unwrap())),
+            3 => Err(Status(String::from_utf8(data.into()).unwrap())),
             _ => {
                 let s = format!("invalid response type. ty={ty}");
                 error!("{s}");
