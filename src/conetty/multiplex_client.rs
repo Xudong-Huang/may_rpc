@@ -95,7 +95,7 @@ impl<S: StreamExt> Client for MultiplexClient<S> {
         let id: usize = id.into();
         let buf = req.finish(id as u64);
 
-        self.sock.write(buf);
+        self.sock.write(buf)?;
 
         // wait for the rsp
         Ok(waiter.wait_rsp(self.timeout)?)

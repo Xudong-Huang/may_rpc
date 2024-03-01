@@ -49,7 +49,7 @@ impl<W: Write> QueuedWriter<W> {
     }
 
     /// it's safe and efficient to call this API concurrently
-    pub fn write(&self, data: Vec<u8>) {
+    pub fn write(&self, data: Vec<u8>) -> std::io::Result<()> {
         self.data_queue.push(data);
         // only allow the first writer perform the write operation
         // other concurrent writers would just push the data
@@ -70,10 +70,8 @@ impl<W: Write> QueuedWriter<W> {
                 }
             }
 
-            if let Err(e) = writer.write_all() {
-                // FIXME: handle the error
-                error!("QueuedWriter failed, err={}", e);
-            }
+            writer.write_all()?;
         }
+        Ok(())
     }
 }

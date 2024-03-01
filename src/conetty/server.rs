@@ -141,7 +141,7 @@ pub trait TcpServer: Server {
 
                                 info!("send rsp: id={}", req.id);
                                 // send the result back to client
-                                w_stream.write(data);
+                                w_stream.write(data).expect("tcp write to client failed");
                             });
                         }
                     });
@@ -206,7 +206,7 @@ pub trait UdsServer: Server {
 
                                 info!("send rsp: id={}", req.id);
                                 // send the result back to client
-                                w_stream.write(data);
+                                w_stream.write(data).expect("uds write to client failed");
                             });
                         }
                     });
