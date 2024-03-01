@@ -28,8 +28,6 @@ impl<W: Write> BufWriter<W> {
     fn write_all(&mut self) -> std::io::Result<()> {
         let ret = self.writer.write_all(&self.buf);
         self.buf.clear();
-        let capacity = self.buf.capacity();
-        self.buf.reserve(capacity);
         ret
     }
 }
