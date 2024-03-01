@@ -10,13 +10,13 @@ pub enum HelloRequest {
 }
 
 #[derive(Debug)]
-pub struct HelloClient<S: conetty::StreamExt> {
-    transport: conetty::MultiplexClient<S>,
+pub struct HelloClient<S: may_rpc::StreamExt> {
+    transport: may_rpc::MultiplexClient<S>,
 }
 
-impl<S: conetty::StreamExt> HelloClient<S> {
+impl<S: may_rpc::StreamExt> HelloClient<S> {
     pub fn new(stream: S) -> std::io::Result<Self> {
-        let transport = conetty::MultiplexClient::new(stream)?;
+        let transport = may_rpc::MultiplexClient::new(stream)?;
         Ok(Self { transport })
     }
     pub fn set_timeout(&mut self, timeout: std::time::Duration) {
@@ -24,35 +24,35 @@ impl<S: conetty::StreamExt> HelloClient<S> {
     }
 }
 
-impl<S: conetty::StreamExt> HelloClient<S> {
-    pub fn echo(&self, data: String) -> Result<String, conetty::Error> {
-        use conetty::Client;
+impl<S: may_rpc::StreamExt> HelloClient<S> {
+    pub fn echo(&self, data: String) -> Result<String, may_rpc::Error> {
+        use may_rpc::Client;
 
-        let mut req = conetty::ReqBuf::new();
+        let mut req = may_rpc::ReqBuf::new();
         // serialize the request
         let request = HelloRequest::Echo { data };
         bincode::serialize_into(&mut req, &request)
-            .map_err(|e| conetty::Error::ClientSerialize(e.to_string()))?;
+            .map_err(|e| may_rpc::Error::ClientSerialize(e.to_string()))?;
         // call the server
         let rsp_frame = self.transport.call_service(req)?;
         let rsp = rsp_frame.decode_rsp()?;
         // deserialized the response
-        bincode::deserialize(rsp).map_err(|e| conetty::Error::ClientDeserialize(e.to_string()))
+        bincode::deserialize(rsp).map_err(|e| may_rpc::Error::ClientDeserialize(e.to_string()))
     }
 
-    pub fn add(&self, x: u32, y: u32) -> Result<u32, conetty::Error> {
-        use conetty::Client;
+    pub fn add(&self, x: u32, y: u32) -> Result<u32, may_rpc::Error> {
+        use may_rpc::Client;
 
-        let mut req = conetty::ReqBuf::new();
+        let mut req = may_rpc::ReqBuf::new();
         // serialize the request
         let request = HelloRequest::Add { x, y };
         bincode::serialize_into(&mut req, &request)
-            .map_err(|e| conetty::Error::ClientSerialize(e.to_string()))?;
+            .map_err(|e| may_rpc::Error::ClientSerialize(e.to_string()))?;
         // call the server
         let rsp_frame = self.transport.call_service(req)?;
         let rsp = rsp_frame.decode_rsp()?;
         // deserialized the response
-        bincode::deserialize(rsp).map_err(|e| conetty::Error::ClientDeserialize(e.to_string()))
+        bincode::deserialize(rsp).map_err(|e| may_rpc::Error::ClientDeserialize(e.to_string()))
     }
 }
 
@@ -60,21 +60,21 @@ pub trait HelloServiceDispatch: Hello + std::panic::RefUnwindSafe {
     fn dispatch_req(
         &self,
         request: HelloRequest,
-        rsp: &mut conetty::RspBuf,
-    ) -> Result<(), conetty::WireError> {
+        rsp: &mut may_rpc::RspBuf,
+    ) -> Result<(), may_rpc::WireError> {
         // dispatch call the service
         match request {
             HelloRequest::Echo { data } => match std::panic::catch_unwind(|| self.echo(data)) {
                 Ok(ret) => bincode::serialize_into(rsp, &ret)
-                    .map_err(|e| conetty::WireError::ServerSerialize(e.to_string())),
-                Err(_) => Err(conetty::WireError::Status(
+                    .map_err(|e| may_rpc::WireError::ServerSerialize(e.to_string())),
+                Err(_) => Err(may_rpc::WireError::Status(
                     "rpc panicked in server!".to_owned(),
                 )),
             },
             HelloRequest::Add { x, y } => match std::panic::catch_unwind(|| self.add(x, y)) {
                 Ok(ret) => bincode::serialize_into(rsp, &ret)
-                    .map_err(|e| conetty::WireError::ServerSerialize(e.to_string())),
-                Err(_) => Err(conetty::WireError::Status(
+                    .map_err(|e| may_rpc::WireError::ServerSerialize(e.to_string())),
+                Err(_) => Err(may_rpc::WireError::Status(
                     "rpc panicked in server!".to_owned(),
                 )),
             },
@@ -98,13 +98,13 @@ mod server {
         }
     }
 
-    impl conetty::Server for HelloService {
-        fn service(&self, req: &[u8], rsp: &mut conetty::RspBuf) -> Result<(), conetty::WireError> {
+    impl may_rpc::Server for HelloService {
+        fn service(&self, req: &[u8], rsp: &mut may_rpc::RspBuf) -> Result<(), may_rpc::WireError> {
             use super::HelloServiceDispatch;
 
             // deserialize the request
             let request: HelloRequest = bincode::deserialize(req)
-                .map_err(|e| conetty::WireError::ServerDeserialize(e.to_string()))?;
+                .map_err(|e| may_rpc::WireError::ServerDeserialize(e.to_string()))?;
 
             log::info!("request = {:?}", request);
 

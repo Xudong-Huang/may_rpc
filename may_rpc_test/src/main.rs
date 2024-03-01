@@ -2,7 +2,7 @@ mod test_hello_bar;
 mod test_hello_foo;
 
 fn test_foo() {
-    pub use conetty::TcpServer;
+    pub use may_rpc::TcpServer;
 
     use test_hello_foo::{HelloClient, HelloService};
     let addr = ("127.0.0.1", 4000);
@@ -27,7 +27,7 @@ fn test_foo() {
 }
 
 fn test_bar() {
-    use conetty::TcpServer;
+    use may_rpc::TcpServer;
     use test_hello_foo::{HelloClient, HelloService};
     let addr = ("127.0.0.1", 4000);
 
