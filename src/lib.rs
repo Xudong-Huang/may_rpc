@@ -31,7 +31,7 @@ pub use bincode;
 pub use serde;
 
 pub use conetty::{
-    Client, Error, Frame, MultiplexClient, ReqBuf, RspBuf, Server, StreamClient, StreamExt,
-    TcpServer, UdpClient, UdpServer, UdsServer, WireError, ServerInstance
+    Client, Error, Frame, MultiplexClient, ReqBuf, RspBuf, Server, ServerInstance, StreamClient,
+    StreamExt, TcpServer, UdpClient, UdpServer, UdsServer, WireError,
 };
 pub use may_rpc_derive::{service, Server};
