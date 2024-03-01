@@ -58,5 +58,4 @@ fn main() {
     let dur = dur.as_secs() as f32 + dur.subsec_nanos() as f32 / 1_000_000_000.0;
     let throughput = workers as f32 * jobs_per_worker as f32 / dur;
     println!("elapsed {dur:?}s, {throughput} rpc/second",);
-    std::thread::sleep(std::time::Duration::from_secs(1));
 }
