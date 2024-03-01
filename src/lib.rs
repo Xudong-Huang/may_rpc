@@ -27,11 +27,13 @@ extern crate log;
 
 mod conetty;
 
-pub use bincode;
-pub use serde;
-
+#[cfg(unix)]
+pub use conetty::UdsServer;
 pub use conetty::{
     Client, Error, Frame, MultiplexClient, ReqBuf, RspBuf, Server, ServerInstance, StreamClient,
-    StreamExt, TcpServer, UdpClient, UdpServer, UdsServer, WireError,
+    StreamExt, TcpServer, UdpClient, UdpServer, WireError,
 };
 pub use may_rpc_derive::{service, Server};
+
+pub use bincode;
+pub use serde;
