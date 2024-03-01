@@ -8,6 +8,7 @@ use super::queued_writer::QueuedWriter;
 use super::stream_ext::StreamExt;
 use super::Client;
 
+use bytes::BytesMut;
 use may::io::SplitWriter;
 use may::{coroutine, go};
 use may_waiter::TokenWaiter;
@@ -50,8 +51,9 @@ impl<S: StreamExt> MultiplexClient<S> {
         let listener = go!(
             coroutine::Builder::new().name("MultiPlexClientListener".to_owned()),
             move || {
+                let mut buf = BytesMut::with_capacity(1024 * 32);
                 loop {
-                    let rsp_frame = match Frame::decode_from(&mut r_stream) {
+                    let rsp_frame = match Frame::decode_from(&mut r_stream, &mut buf) {
                         Ok(r) => r,
                         Err(ref e) => {
                             if e.kind() == io::ErrorKind::UnexpectedEof {

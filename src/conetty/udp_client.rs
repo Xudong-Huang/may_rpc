@@ -5,6 +5,7 @@ use std::time::Duration;
 use super::errors::Error;
 use super::frame::{Frame, ReqBuf};
 
+use bytes::BytesMut;
 use may::net::UdpSocket;
 
 /// Udp Client
@@ -52,12 +53,14 @@ impl UdpClient {
         // send the data to server
         self.sock.send(&(req.finish(id))).map_err(Error::from)?;
 
+        let mut buf = BytesMut::with_capacity(1024 * 32);
+
         // read the response
         loop {
             self.sock.recv(&mut self.buf).map_err(Error::from)?;
 
             // deserialize the rsp
-            let rsp_frame = Frame::decode_from(&mut Cursor::new(&self.buf))
+            let rsp_frame = Frame::decode_from(&mut Cursor::new(&self.buf), &mut buf)
                 .map_err(|e| Error::ClientDeserialize(e.to_string()))?;
 
             // discard the rsp that is is not belong to us

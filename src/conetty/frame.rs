@@ -2,6 +2,7 @@ use std::io::{self, Cursor, ErrorKind, Read, Write};
 
 use crate::{Error, WireError};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use bytes::{BufMut, Bytes, BytesMut};
 
 // Frame layout
 // id(u64) + len(u64) + payload([u8; len])
@@ -22,12 +23,12 @@ pub struct Frame {
     /// frame id, req and rsp has the same id
     pub id: u64,
     /// payload data
-    data: Vec<u8>,
+    data: Bytes,
 }
 
 impl Frame {
     /// decode a frame from the reader
-    pub fn decode_from<R: Read>(r: &mut R) -> io::Result<Self> {
+    pub fn decode_from<R: Read>(r: &mut R, buf: &mut BytesMut) -> io::Result<Self> {
         let id = r.read_u64::<BigEndian>()?;
         info!("decode id = {:?}", id);
 
@@ -40,14 +41,21 @@ impl Frame {
             return Err(io::Error::new(ErrorKind::InvalidInput, s));
         }
 
-        let mut data = vec![0; len as usize];
-        r.read_exact(&mut data[16..])?;
+        let buf_len = len as usize;
 
-        // blow can be skipped, we don't need them in the buffer
-        let mut cursor = Cursor::new(data);
-        cursor.write_u64::<BigEndian>(id).unwrap();
-        cursor.write_u64::<BigEndian>(len - 16).unwrap();
-        let data = cursor.into_inner();
+        buf.reserve(len as usize);
+        let data: &mut [u8] = unsafe { std::mem::transmute(buf.chunk_mut()) };
+
+        r.read_exact(&mut data[16..buf_len])?;
+        unsafe { buf.advance_mut(buf_len) };
+        let mut data = buf.split_to(buf_len);
+
+        unsafe { data.set_len(0) };
+        data.put_u64(id);
+        data.put_u64(len - 16);
+        unsafe { data.set_len(buf_len) };
+
+        let data = data.freeze();
 
         Ok(Frame { id, data })
     }
@@ -75,7 +83,7 @@ impl Frame {
     pub fn decode_rsp(&self) -> Result<&[u8], Error> {
         use Error::*;
 
-        let mut r = Cursor::new(&self.data);
+        let mut r = Cursor::new(&self.data[..]);
         // skip the frame head
         r.set_position(16);
 

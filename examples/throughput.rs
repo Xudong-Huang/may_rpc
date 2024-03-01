@@ -45,14 +45,12 @@ fn main() {
                     Ok(n) => assert_eq!(n, j + 1),
                 }
             }
-            // println!("thread done, id={_i}");
         });
         vec.push(h);
     }
 
-    for (_i, h) in vec.into_iter().enumerate() {
+    for h in vec {
         h.join().unwrap();
-        // println!("thread {_i} joined");
     }
 
     let dur = now.elapsed();

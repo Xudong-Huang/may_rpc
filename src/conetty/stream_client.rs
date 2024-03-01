@@ -1,6 +1,8 @@
 use std::io::{self, BufReader};
 use std::time::Duration;
 
+use bytes::BytesMut;
+
 use super::errors::Error;
 use super::frame::{Frame, ReqBuf};
 use super::stream_ext::StreamExt;
@@ -42,10 +44,12 @@ impl<S: StreamExt> StreamClient<S> {
         // encode the request
         self.stream.get_mut().write_all(&(req.finish(id)))?;
 
+        let mut buf = BytesMut::with_capacity(1024 * 32);
+
         // read the response
         loop {
             // deserialize the rsp
-            let rsp_frame = Frame::decode_from(&mut self.stream)
+            let rsp_frame = Frame::decode_from(&mut self.stream, &mut buf)
                 .map_err(|e| Error::ClientDeserialize(e.to_string()))?;
 
             // discard the rsp that is is not belong to us

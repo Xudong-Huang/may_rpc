@@ -8,6 +8,7 @@ use super::frame::{Frame, RspBuf};
 use super::queued_writer::QueuedWriter;
 use crate::Server;
 
+use bytes::BytesMut;
 use co_managed::Manager;
 use may::net::{TcpListener, UdpSocket};
 #[cfg(unix)]
@@ -65,13 +66,14 @@ pub trait UdpServer: Server {
                 // the write half need to be protected by mutex
                 // for that coroutine io obj can't shared safely
                 let sock = Arc::new(Mutex::new(sock));
+                let mut body_buf = BytesMut::with_capacity(1024 * 32);
                 loop {
                     // each udp packet should be less than 1024 bytes
                     let (len, addr) = t!(sock1.recv_from(&mut buf));
                     info!("recv_from: len={:?} addr={:?}", len, addr);
 
                     // if we failed to deserialize the request frame, just continue
-                    let req = t!(Frame::decode_from(&mut Cursor::new(&buf)));
+                    let req = t!(Frame::decode_from(&mut Cursor::new(&buf), &mut body_buf));
                     let sock = sock.clone();
                     let server = server.clone();
                     // let mutex = mutex.clone();
@@ -117,9 +119,9 @@ pub trait TcpServer: Server {
                         let mut rs = BufReader::new(rs);
                         // the write half of the stream
                         let ws = Arc::new(QueuedWriter::new(stream));
-
+                        let mut buf = BytesMut::with_capacity(1024 * 32);
                         loop {
-                            let req = match Frame::decode_from(&mut rs) {
+                            let req = match Frame::decode_from(&mut rs, &mut buf) {
                                 Ok(r) => r,
                                 Err(ref e) => {
                                     if e.kind() == io::ErrorKind::UnexpectedEof {
@@ -182,9 +184,9 @@ pub trait UdsServer: Server {
                         // the write half need to be protected by mutex
                         // for that coroutine io obj can't shared safely
                         let ws = Arc::new(QueuedWriter::new(stream));
-
+                        let mut buf = BytesMut::with_capacity(1024 * 32);
                         loop {
-                            let req = match Frame::decode_from(&mut rs) {
+                            let req = match Frame::decode_from(&mut rs, &mut buf) {
                                 Ok(r) => r,
                                 Err(ref e) => {
                                     if e.kind() == io::ErrorKind::UnexpectedEof {
