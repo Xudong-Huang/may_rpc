@@ -18,6 +18,7 @@ impl Rpc for Server {
 
 fn main() {
     use may_rpc::TcpServer;
+    let total_client = 16;
     let workers = 10000;
     let jobs_per_worker = 1000;
 
@@ -25,7 +26,7 @@ fn main() {
     may::config().set_pool_capacity(10000);
     let addr = ("127.0.0.1", 4000);
     let _server = Server.start(addr).unwrap();
-    let clients: Vec<_> = (0..16)
+    let clients: Vec<_> = (0..total_client)
         .map(|_| {
             let stream = may::net::TcpStream::connect(addr).unwrap();
             RpcClient::new(stream).unwrap()
@@ -38,7 +39,7 @@ fn main() {
         let clients = clients.clone();
         let h = may::go!(move || {
             for j in 0..jobs_per_worker {
-                let idx = j & 0x0f;
+                let idx = j % total_client;
                 match clients[idx].ack(j) {
                     Err(err) => println!("recv err = {:?}", err),
                     Ok(n) => assert_eq!(n, j + 1),
@@ -57,5 +58,5 @@ fn main() {
     let dur = now.elapsed();
     let dur = dur.as_secs() as f32 + dur.subsec_nanos() as f32 / 1_000_000_000.0;
     let throughput = workers as f32 * jobs_per_worker as f32 / dur;
-    println!("elapsed {dur:?}s, {throughput} rpc/second",);
+    println!("elapsed {dur:?}s, {throughput} rpc/second");
 }

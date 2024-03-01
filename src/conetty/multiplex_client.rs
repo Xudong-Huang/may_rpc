@@ -35,8 +35,7 @@ impl<S: StreamExt> Drop for MultiplexClient<S> {
     fn drop(&mut self) {
         if let Some(h) = self.listener.take() {
             unsafe { h.coroutine().cancel() };
-            // FIXME: join here when bug fix in thread context in may
-            // h.join().ok();
+            h.join().ok();
         }
     }
 }
