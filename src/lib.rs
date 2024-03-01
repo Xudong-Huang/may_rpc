@@ -32,6 +32,6 @@ pub use serde;
 
 pub use conetty::{
     Client, Error, Frame, MultiplexClient, ReqBuf, RspBuf, Server, StreamClient, StreamExt,
-    TcpServer, UdpClient, UdpServer, UdsServer, WireError,
+    TcpServer, UdpClient, UdpServer, UdsServer, WireError, ServerInstance
 };
 pub use may_rpc_derive::{service, Server};
