@@ -16,7 +16,7 @@ mod count {
 }
 
 fn test_count() {
-    use may_rpc::conetty::TcpServer;
+    use may_rpc::TcpServer;
     use std::sync::atomic::{AtomicUsize, Ordering};
     #[derive(may_rpc::Server)]
     #[service(count::RpcSpec)]
@@ -41,7 +41,7 @@ fn test_count() {
 }
 
 fn test_hello() {
-    use may_rpc::conetty::TcpServer;
+    use may_rpc::TcpServer;
 
     #[derive(may_rpc::Server)]
     #[service(RpcSpec)]

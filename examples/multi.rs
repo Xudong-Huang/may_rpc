@@ -18,7 +18,7 @@ impl RpcSpec for CountImpl {
 }
 
 fn main() {
-    use may_rpc::conetty::TcpServer;
+    use may_rpc::TcpServer;
     let addr = ("127.0.0.1", 4000);
     let _server = CountImpl(AtomicUsize::new(0)).start(addr).unwrap();
 

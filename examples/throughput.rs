@@ -17,7 +17,7 @@ impl Rpc for Server {
 }
 
 fn main() {
-    use may_rpc::conetty::TcpServer;
+    use may_rpc::TcpServer;
 
     env_logger::init();
     may::config().set_pool_capacity(10000);

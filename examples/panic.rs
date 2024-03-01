@@ -13,7 +13,7 @@ impl RpcSpec for RcpServer {
 }
 
 fn main() {
-    use may_rpc::conetty::TcpServer;
+    use may_rpc::TcpServer;
     let addr = ("127.0.0.1", 4000);
     let _server = RcpServer.start(addr).unwrap();
 

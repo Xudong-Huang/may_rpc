@@ -25,13 +25,13 @@
 #[macro_use]
 extern crate log;
 
-// re-export conetty
-pub mod conetty;
-// re-export conetty
+mod conetty;
+
 pub use bincode;
-// re-export serde
 pub use serde;
 
-// re-export all conetty types
-pub use conetty::*;
+pub use conetty::{
+    Client, Error, Frame, MultiplexClient, ReqBuf, RspBuf, Server, StreamClient, StreamExt,
+    TcpServer, UdpClient, UdpServer, UdsServer, WireError,
+};
 pub use may_rpc_derive::{service, Server};

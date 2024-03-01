@@ -298,12 +298,12 @@ impl<'a> ServiceGenerator<'a> {
         quote! {
             #vis trait #dispatch_service_indent: #service_ident + std::panic::RefUnwindSafe
             {
-                fn dispatch_req(&self, req: #request_ident, rsp: &mut may_rpc::conetty::RspBuf) -> Result<(), may_rpc::conetty::WireError> {
+                fn dispatch_req(&self, req: #request_ident, rsp: &mut may_rpc::RspBuf) -> Result<(), may_rpc::WireError> {
                     match req {
                         #(
                             #request_ident::#camel_case_idents{ #( #arg_pats ),* } => match std::panic::catch_unwind(|| self.#method_idents(#( #arg_pats ),*)) {
-                                Ok(ret) => may_rpc::bincode::serialize_into(rsp, &ret).map_err(|e| may_rpc::conetty::WireError::ServerSerialize(e.to_string())),
-                                Err(_) => Err(may_rpc::conetty::WireError::Status("rpc panicked in server!".to_owned())),
+                                Ok(ret) => may_rpc::bincode::serialize_into(rsp, &ret).map_err(|e| may_rpc::WireError::ServerSerialize(e.to_string())),
+                                Err(_) => Err(may_rpc::WireError::Status("rpc panicked in server!".to_owned())),
                             }
                         )*
                     }
@@ -344,8 +344,8 @@ impl<'a> ServiceGenerator<'a> {
             #[allow(unused)]
             #[derive(Debug)]
             /// The client stub that makes RPC calls to the server.
-            #vis struct #client_ident<S: may_rpc::conetty::StreamExt>{
-                transport: may_rpc::conetty::MultiplexClient<S>,
+            #vis struct #client_ident<S: may_rpc::StreamExt>{
+                transport: may_rpc::MultiplexClient<S>,
             }
         }
     }
@@ -356,10 +356,10 @@ impl<'a> ServiceGenerator<'a> {
         } = self;
 
         quote! {
-            impl<S: may_rpc::conetty::StreamExt> #client_ident<S> {
+            impl<S: may_rpc::StreamExt> #client_ident<S> {
                 /// Returns a new client stub that sends requests over the given transport.
                 #vis fn new(stream: S) -> std::io::Result<Self> {
-                    let transport = may_rpc::conetty::MultiplexClient::new(stream)?;
+                    let transport = may_rpc::MultiplexClient::new(stream)?;
                     Ok(Self { transport })
                 }
 
@@ -386,23 +386,23 @@ impl<'a> ServiceGenerator<'a> {
         } = self;
 
         quote! {
-            impl<S: may_rpc::conetty::StreamExt> #client_ident<S> {
+            impl<S: may_rpc::StreamExt> #client_ident<S> {
                 #(
                     #[allow(unused)]
                     #( #method_attrs )*
-                    #vis fn #method_idents(&self, #( #args ),*) -> Result<#return_types, may_rpc::conetty::Error> {
-                        use may_rpc::conetty::Client;
-                        let mut req = may_rpc::conetty::ReqBuf::new();
+                    #vis fn #method_idents(&self, #( #args ),*) -> Result<#return_types, may_rpc::Error> {
+                        use may_rpc::Client;
+                        let mut req = may_rpc::ReqBuf::new();
                         // serialize the request
                         let request = #request_ident::#camel_case_idents { #( #arg_pats ),* };
                         may_rpc::bincode::serialize_into(&mut req, &request)
-                            .map_err(|e| may_rpc::conetty::Error::ClientSerialize(e.to_string()))?;
+                            .map_err(|e| may_rpc::Error::ClientSerialize(e.to_string()))?;
                         // call the server
                         let rsp_frame = self.transport.call_service(req)?;
                         let rsp = rsp_frame.decode_rsp()?;
                         // deserialized the response
                         may_rpc::bincode::deserialize(rsp)
-                            .map_err(|e| may_rpc::conetty::Error::ClientDeserialize(e.to_string()))
+                            .map_err(|e| may_rpc::Error::ClientDeserialize(e.to_string()))
                     }
                 )*
             }
@@ -475,12 +475,12 @@ pub fn derive_rpc_server(input: TokenStream) -> TokenStream {
     }
 
     let out = quote!(
-        impl may_rpc::conetty::Server for #struct_ident {
-            fn service(&self, req: &[u8], rsp: &mut may_rpc::conetty::RspBuf) -> Result<(), may_rpc::conetty::WireError> {
+        impl may_rpc::Server for #struct_ident {
+            fn service(&self, req: &[u8], rsp: &mut may_rpc::RspBuf) -> Result<(), may_rpc::WireError> {
                 use #service;
                 // deserialize the request
                 let request: #service_request = may_rpc::bincode::deserialize(req)
-                    .map_err(|e| may_rpc::conetty::WireError::ServerDeserialize(e.to_string()))?;
+                    .map_err(|e| may_rpc::WireError::ServerDeserialize(e.to_string()))?;
                 // get the dispatch_fn
                 self.dispatch_req(request, rsp)
             }

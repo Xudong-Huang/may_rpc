@@ -21,7 +21,7 @@ impl RpcSpec for Server {
 #[cfg(test)]
 #[bench]
 fn latency(bencher: &mut Bencher) {
-    use may_rpc::conetty::TcpServer;
+    use may_rpc::TcpServer;
     let addr = ("127.0.0.1", 4000);
     let _server = Server.start(addr).unwrap();
     let tcp_stream = may::net::TcpStream::connect(addr).unwrap();
