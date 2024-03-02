@@ -28,7 +28,7 @@ fn test_foo() {
 
 fn test_bar() {
     use may_rpc::TcpServer;
-    use test_hello_foo::{HelloClient, HelloService};
+    use test_hello_bar::{HelloClient, HelloService};
     let addr = ("127.0.0.1", 4000);
 
     let service = HelloService;
@@ -47,6 +47,15 @@ fn test_bar() {
     for i in 0..10 {
         let data = client.add(i, i);
         println!("recv = {:?}", data);
+    }
+
+    for _i in 0..10 {
+        let data = client.xxxx();
+        println!("recv = {:?}", data);
+    }
+
+    for _i in 0..10 {
+        client.yyyy("no return".to_string()).unwrap();
     }
 }
 

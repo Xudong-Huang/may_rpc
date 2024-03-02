@@ -6,6 +6,10 @@ pub trait Hello {
     fn echo(&self, data: String) -> String;
     /// add two u32
     fn add(&self, x: u32, y: u32) -> u32;
+    /// no args
+    fn xxxx(&self) -> String;
+    /// no return
+    fn yyyy(&self, data: String);
 }
 
 #[derive(may_rpc::Server)]
@@ -20,5 +24,13 @@ impl Hello for HelloService {
 
     fn add(&self, x: u32, y: u32) -> u32 {
         x + y
+    }
+
+    fn xxxx(&self) -> String {
+        "no args".to_string()
+    }
+
+    fn yyyy(&self, data: String) -> () {
+        println!("yyyy: {}", data);
     }
 }
