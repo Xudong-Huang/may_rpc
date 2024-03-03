@@ -20,7 +20,7 @@ impl<S: StreamExt> StreamClient<S> {
     pub fn new(stream: S) -> Self {
         StreamClient {
             id: 0,
-            stream: BufReader::with_capacity(1024, stream),
+            stream: BufReader::with_capacity(1024 * 32, stream),
         }
     }
 }

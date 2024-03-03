@@ -171,7 +171,7 @@ pub const SERVER_POLL_ENCODE: u8 = 200;
 impl RspBuf {
     /// crate a new `RspBuf` instance
     pub fn new() -> Self {
-        let mut buf = Vec::with_capacity(64);
+        let mut buf = Vec::with_capacity(128);
         // id + len + ty + len + data
         buf.resize(25, 0);
         let mut cursor = Cursor::new(buf);
