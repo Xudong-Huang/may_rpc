@@ -17,7 +17,7 @@ description = "RPC framework for Rust based on coroutine."
 proc-macro = true
 
 [dependencies]
-heck = "0.4"
+heck = "0.5"
 quote = "1.0"
 proc-macro2 = "1.0"
 syn = { version = "2.0", features = ["full"] }

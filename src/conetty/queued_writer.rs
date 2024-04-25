@@ -54,7 +54,10 @@ impl<W: Write> QueuedWriter<W> {
         // only allow the first writer perform the write operation
         // other concurrent writers would just push the data
         if self.data_count.fetch_add(1, Ordering::AcqRel) == 0 {
-            // in any cases this should not block since we have only one writer
+            // it's possible that other writer is blocked by the lock
+            // e.g. the `write_all()` is blocked and data_count is 0
+            // and the next writer would try to acquire the lock
+            // this only relax the write lock contention
             let mut writer = self.writer.lock().unwrap();
 
             loop {
