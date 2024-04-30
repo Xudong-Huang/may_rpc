@@ -18,6 +18,13 @@ impl<W: Write> BufWriter<W> {
             buf: BytesMut::with_capacity(1024 * 32),
         }
     }
+    #[inline]
+    fn reserve_buf(&mut self) {
+        let remain = self.buf.capacity() - self.buf.len();
+        if remain < 1024 {
+            self.buf.reserve(1024 * 32 - remain);
+        }
+    }
 
     #[inline]
     fn put_data(&mut self, data: &[u8]) {
@@ -59,6 +66,7 @@ impl<W: Write> QueuedWriter<W> {
             // and the next writer would try to acquire the lock
             // this only relax the write lock contention
             let mut writer = self.writer.lock().unwrap();
+            writer.reserve_buf();
 
             loop {
                 let mut cnt = 0;
