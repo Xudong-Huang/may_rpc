@@ -29,6 +29,7 @@ fn main() {
     let clients: Vec<_> = (0..total_client)
         .map(|_| {
             let stream = may::net::TcpStream::connect(addr).unwrap();
+            stream.set_nodelay(true).unwrap();
             RpcClient::new(stream).unwrap()
         })
         .collect();

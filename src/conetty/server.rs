@@ -112,6 +112,7 @@ pub trait TcpServer: Server {
                 let manager = Manager::new();
                 for stream in listener.incoming() {
                     let stream = t!(stream);
+                    stream.set_nodelay(true).unwrap();
                     let server = server.clone();
                     manager.add(move |_| {
                         let rs = stream.try_clone().expect("failed to clone stream");
