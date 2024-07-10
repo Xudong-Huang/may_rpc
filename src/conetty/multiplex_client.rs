@@ -1,6 +1,5 @@
 use std::fmt;
 use std::io::{self, BufReader};
-use std::num::NonZeroUsize;
 use std::time::Duration;
 
 use super::errors::Error;
@@ -68,8 +67,7 @@ impl<S: StreamExt> MultiplexClient<S> {
                     info!("receive rsp, id={}", rsp_frame.id);
 
                     // set the wait req
-                    let id = NonZeroUsize::new(rsp_frame.id as usize).unwrap();
-                    let id = unsafe { may_waiter::ID::from_usize(id) };
+                    let id = unsafe { may_waiter::ID::from_usize(rsp_frame.id as usize) };
                     TokenWaiter::set_rsp(id, rsp_frame);
                 }
             }
