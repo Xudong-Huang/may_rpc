@@ -15,12 +15,11 @@ description = "RPC framework for Rust based on coroutine."
 may = "0.3"
 log = "0.4"
 bytes = "1"
-bincode = "1"
+bitcode = "0.6"
 byteorder = "1"
 thiserror = "1"
 co_managed = "0.1"
 may_waiter = "0.1"
-serde = { version = "1", features = ["derive"] }
 may_rpc_derive = { path = "./may_rpc_derive", version = "0.1" }
 
 [dev-dependencies]

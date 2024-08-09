@@ -35,5 +35,4 @@ pub use conetty::{
 };
 pub use may_rpc_derive::{service, Server};
 
-pub use bincode;
-pub use serde;
+pub use bitcode;

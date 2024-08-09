@@ -145,15 +145,13 @@ impl Parse for RpcMethod {
 /// Adds the following annotations to the annotated item:
 ///
 /// ```rust
-/// #[derive(may_rpc::serde::Serialize, may_rpc::serde::Deserialize)]
-/// #[serde(crate = "may_rpc::serde")]
+/// #[derive(may_rpc::bitcode::Encode, may_rpc::bitcode::Decode)]
 /// # struct Foo;
 /// ```
 #[proc_macro_attribute]
 pub fn derive_serde(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let mut gen: proc_macro2::TokenStream = quote! {
-        #[derive(may_rpc::serde::Serialize, may_rpc::serde::Deserialize)]
-        #[serde(crate = "may_rpc::serde")]
+        #[derive(may_rpc::bitcode::Encode, may_rpc::bitcode::Decode)]
     };
     gen.extend(proc_macro2::TokenStream::from(item));
     proc_macro::TokenStream::from(gen)
@@ -192,8 +190,7 @@ pub fn service(attr: TokenStream, input: TokenStream) -> TokenStream {
     let args: &[&[PatType]] = &rpcs.iter().map(|rpc| &*rpc.args).collect::<Vec<_>>();
     let derive_serialize = {
         quote! {
-            #[derive(may_rpc::serde::Serialize, may_rpc::serde::Deserialize)]
-            #[serde(crate = "may_rpc::serde")]
+            #[derive(may_rpc::bitcode::Encode, may_rpc::bitcode::Decode)]
         }
     };
 
@@ -299,10 +296,11 @@ impl<'a> ServiceGenerator<'a> {
             #vis trait #dispatch_service_indent: #service_ident + std::panic::RefUnwindSafe
             {
                 fn dispatch_req(&self, req: #request_ident, rsp: &mut may_rpc::RspBuf) -> Result<(), may_rpc::WireError> {
+                    use std::io::Write;
                     match req {
                         #(
                             #request_ident::#camel_case_idents{ #( #arg_pats ),* } => match std::panic::catch_unwind(|| self.#method_idents(#( #arg_pats ),*)) {
-                                Ok(ret) => may_rpc::bincode::serialize_into(rsp, &ret).map_err(|e| may_rpc::WireError::ServerSerialize(e.to_string())),
+                                Ok(ret) => rsp.write_all(&may_rpc::bitcode::encode(&ret)).map_err(|e| may_rpc::WireError::ServerSerialize(e.to_string())),
                                 Err(_) => Err(may_rpc::WireError::Status("rpc panicked in server!".to_owned())),
                             }
                         )*
@@ -391,17 +389,18 @@ impl<'a> ServiceGenerator<'a> {
                     #[allow(unused)]
                     #( #method_attrs )*
                     #vis fn #method_idents(&self, #( #args ),*) -> Result<#return_types, may_rpc::Error> {
+                        use std::io::Write;
                         use may_rpc::Client;
                         let mut req = may_rpc::ReqBuf::new();
                         // serialize the request
                         let request = #request_ident::#camel_case_idents { #( #arg_pats ),* };
-                        may_rpc::bincode::serialize_into(&mut req, &request)
+                        req.write_all(&may_rpc::bitcode::encode(&request))
                             .map_err(|e| may_rpc::Error::ClientSerialize(e.to_string()))?;
                         // call the server
                         let rsp_frame = self.transport.call_service(req)?;
                         let rsp = rsp_frame.decode_rsp()?;
                         // deserialized the response
-                        may_rpc::bincode::deserialize(rsp)
+                        may_rpc::bitcode::decode(rsp)
                             .map_err(|e| may_rpc::Error::ClientDeserialize(e.to_string()))
                     }
                 )*
@@ -479,7 +478,7 @@ pub fn derive_rpc_server(input: TokenStream) -> TokenStream {
             fn service(&self, req: &[u8], rsp: &mut may_rpc::RspBuf) -> Result<(), may_rpc::WireError> {
                 use #service;
                 // deserialize the request
-                let request: #service_request = may_rpc::bincode::deserialize(req)
+                let request: #service_request = may_rpc::bitcode::decode(req)
                     .map_err(|e| may_rpc::WireError::ServerDeserialize(e.to_string()))?;
                 // get the dispatch_fn
                 self.dispatch_req(request, rsp)
