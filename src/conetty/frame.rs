@@ -60,7 +60,7 @@ impl Frame {
         Ok(Frame { id, data })
     }
 
-    /// convert self into raw buf that can be re-send as a frame
+    // /// convert self into raw buf that can be re-send as a frame
     // pub fn finish(self, id: u64) -> Vec<u8> {
     //     let mut cursor = Cursor::new(self.data);
 
