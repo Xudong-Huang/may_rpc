@@ -114,7 +114,7 @@ pub trait TcpServer: Server {
                     let stream = t!(stream);
                     stream.set_nodelay(true).unwrap();
                     let server = server.clone();
-                    manager.add(move |_| {
+                    manager.add(move || {
                         let rs = stream.try_clone().expect("failed to clone stream");
                         // the read half of the stream
                         let mut rs = BufReader::new(rs);
@@ -178,7 +178,7 @@ pub trait UdsServer: Server {
                 for stream in listener.0.incoming() {
                     let stream = t!(stream);
                     let server = server.clone();
-                    manager.add(move |_| {
+                    manager.add(move || {
                         let rs = stream.try_clone().expect("failed to clone stream");
                         // the read half of the stream
                         let mut rs = BufReader::new(rs);
