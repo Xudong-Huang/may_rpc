@@ -32,16 +32,16 @@ fn main() {
             for _j in 0..1000 {
                 if let Err(err) = client.get_count() {
                     // Ok(data) => println!("recv = {:?}", str::from_utf8(&data).unwrap()),
-                    println!("recv err = {:?}", err);
+                    println!("recv err = {err:?}");
                 }
             }
-            println!("thread done, id={}", i);
+            println!("thread done, id={i}");
         });
         vec.push(j);
     }
 
     for (i, j) in vec.into_iter().enumerate() {
         j.join().unwrap();
-        println!("wait for {} done", i);
+        println!("wait for {i} done");
     }
 }

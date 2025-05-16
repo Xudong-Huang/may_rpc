@@ -70,7 +70,7 @@ pub trait UdpServer: Server {
                 loop {
                     // each udp packet should be less than 1024 bytes
                     let (len, addr) = t!(sock1.recv_from(&mut buf));
-                    info!("recv_from: len={:?} addr={:?}", len, addr);
+                    info!("recv_from: len={len:?} addr={addr:?}");
 
                     // if we failed to deserialize the request frame, just continue
                     let req = t!(Frame::decode_from(&mut Cursor::new(&buf), &mut body_buf));
@@ -89,7 +89,7 @@ pub trait UdpServer: Server {
                         let s = sock.lock().unwrap();
                         match s.send_to(&data, addr) {
                             Ok(_) => {}
-                            Err(err) => error!("udp send_to failed, err={:?}", err),
+                            Err(err) => error!("udp send_to failed, err={err:?}"),
                         }
                     });
                 }
@@ -128,7 +128,7 @@ pub trait TcpServer: Server {
                                     if e.kind() == io::ErrorKind::UnexpectedEof {
                                         info!("tcp server decode req: connection closed");
                                     } else {
-                                        error!("tcp server decode req: err = {:?}", e);
+                                        error!("tcp server decode req: err = {e:?}");
                                     }
                                     break;
                                 }
@@ -193,7 +193,7 @@ pub trait UdsServer: Server {
                                     if e.kind() == io::ErrorKind::UnexpectedEof {
                                         info!("uds server decode req: connection closed");
                                     } else {
-                                        error!("uds server decode req: err = {:?}", e);
+                                        error!("uds server decode req: err = {e:?}");
                                     }
                                     break;
                                 }

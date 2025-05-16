@@ -59,7 +59,7 @@ impl<S: StreamExt> MultiplexClient<S> {
                             if e.kind() == io::ErrorKind::UnexpectedEof {
                                 info!("tcp multiplex_client decode rsp: connection closed");
                             } else {
-                                error!("tcp multiplex_client decode rsp: err = {:?}", e);
+                                error!("tcp multiplex_client decode rsp: err = {e:?}");
                             }
                             break;
                         }
@@ -91,7 +91,7 @@ impl<S: StreamExt> Client for MultiplexClient<S> {
     fn call_service(&self, req: ReqBuf) -> Result<Frame, Error> {
         let waiter = TokenWaiter::new();
         let id = waiter.id().unwrap();
-        info!("request id = {:?}", id);
+        info!("request id = {id:?}");
 
         // send the request
         let id: usize = id.into();

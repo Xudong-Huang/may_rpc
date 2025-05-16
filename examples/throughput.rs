@@ -42,7 +42,7 @@ fn main() {
             for j in 0..jobs_per_worker {
                 let idx = j % total_client;
                 match clients[idx].ack(j) {
-                    Err(err) => println!("recv err = {:?}", err),
+                    Err(err) => println!("recv err = {err:?}"),
                     Ok(n) => assert_eq!(n, j + 1),
                 }
             }

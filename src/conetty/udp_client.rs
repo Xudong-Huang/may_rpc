@@ -48,7 +48,7 @@ impl UdpClient {
     pub fn call_service(&mut self, req: ReqBuf) -> Result<Frame, Error> {
         let id = self.id;
         self.id += 1;
-        info!("request id = {}", id);
+        info!("request id = {id}");
 
         // send the data to server
         self.sock.send(&(req.finish(id))).map_err(Error::from)?;
@@ -65,7 +65,7 @@ impl UdpClient {
 
             // discard the rsp that is is not belong to us
             if rsp_frame.id == id {
-                info!("get response id = {}", id);
+                info!("get response id = {id}");
                 return Ok(rsp_frame);
             }
         }

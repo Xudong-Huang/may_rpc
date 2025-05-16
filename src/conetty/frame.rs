@@ -30,10 +30,10 @@ impl Frame {
     /// decode a frame from the reader
     pub fn decode_from<R: Read>(r: &mut R, buf: &mut BytesMut) -> io::Result<Self> {
         let id = r.read_u64::<BigEndian>()?;
-        info!("decode id = {:?}", id);
+        info!("decode id = {id:?}");
 
         let len = r.read_u64::<BigEndian>()? + 16;
-        info!("decode len = {:?}", len);
+        info!("decode len = {len:?}");
 
         if len > FRAME_MAX_LEN {
             let s = format!("decode too big frame length. len={len}");
@@ -138,11 +138,11 @@ impl ReqBuf {
         // write from start
         cursor.set_position(0);
         cursor.write_u64::<BigEndian>(id).unwrap();
-        info!("encode id = {:?}", id);
+        info!("encode id = {id:?}");
 
         // adjust the data length
         cursor.write_u64::<BigEndian>(len - 16).unwrap();
-        info!("encode len = {:?}", len);
+        info!("encode len = {len:?}");
 
         cursor.into_inner()
     }
@@ -201,11 +201,11 @@ impl RspBuf {
         // write from start
         cursor.set_position(0);
         cursor.write_u64::<BigEndian>(id).unwrap();
-        info!("encode id = {:?}", id);
+        info!("encode id = {id:?}");
 
         // adjust the data length
         cursor.write_u64::<BigEndian>(len + 9).unwrap();
-        info!("encode len = {:?}", len);
+        info!("encode len = {len:?}");
 
         // write the type
         cursor.write_u8(ty).unwrap();

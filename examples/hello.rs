@@ -36,7 +36,7 @@ fn test_count() {
 
     for _ in 0..10 {
         let data = client.get_count();
-        println!("recv = {:?}", data);
+        println!("recv = {data:?}");
     }
 }
 
@@ -63,14 +63,14 @@ fn test_hello() {
     let client = RpcSpecClient::new(tcp_stream).unwrap();
 
     for i in 0..10 {
-        let s = format!("Hello World! id={}", i);
+        let s = format!("Hello World! id={i}");
         let data = client.hello(s);
-        println!("recv = {:?}", data);
+        println!("recv = {data:?}");
     }
 
     for i in 0..10 {
         let data = client.add(i, i);
-        println!("recv = {:?}", data);
+        println!("recv = {data:?}");
     }
 }
 
