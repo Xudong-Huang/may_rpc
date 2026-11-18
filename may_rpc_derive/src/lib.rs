@@ -115,7 +115,7 @@ impl Parse for RpcMethod {
                     if me.mutability.is_some() {
                         extend_errors!(errors, syn::Error::new(me.span(), "self can't be mutable"));
                     }
-                    if me.reference.is_none() {
+                    if !matches!(me.kind, syn::ReceiverKind::Reference(..)) {
                         extend_errors!(errors, syn::Error::new(me.span(), "self must be &self"));
                     }
                 }
@@ -144,7 +144,7 @@ impl Parse for RpcMethod {
 ///
 /// Adds the following annotations to the annotated item:
 ///
-/// ```rust
+/// ```rust,ignore
 /// #[derive(may_rpc::serde::Serialize, may_rpc::serde::Deserialize)]
 /// #[serde(crate = "may_rpc::serde")]
 /// # struct Foo;

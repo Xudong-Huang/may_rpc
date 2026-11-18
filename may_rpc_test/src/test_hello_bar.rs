@@ -30,7 +30,7 @@ impl Hello for HelloService {
         "no args".to_string()
     }
 
-    fn yyyy(&self, data: String) -> () {
+    fn yyyy(&self, data: String) {
         println!("yyyy: {}", data);
     }
 }
