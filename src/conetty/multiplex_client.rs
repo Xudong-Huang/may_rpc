@@ -67,8 +67,10 @@ impl<S: StreamExt> MultiplexClient<S> {
                     info!("receive rsp, id={}", rsp_frame.id);
 
                     // set the wait req
-                    let id = unsafe { may_waiter::ID::from_usize(rsp_frame.id as usize) };
-                    TokenWaiter::set_rsp(id, rsp_frame);
+                    let id = may_waiter::ID::from_usize(rsp_frame.id as usize);
+                    if TokenWaiter::set_rsp(id, rsp_frame).is_err() {
+                        error!("failed to set response for id = {id:?}");
+                    }
                 }
             }
         )?;

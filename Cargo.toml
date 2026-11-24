@@ -18,7 +18,7 @@ bincode = "1"
 byteorder = "1"
 thiserror = "2"
 co_managed = "0.3"
-may_waiter = "0.1"
+may_waiter = "0.2"
 serde = { version = "1", features = ["derive"] }
 may_rpc_derive = { path = "./may_rpc_derive", version = "0.1" }
 
